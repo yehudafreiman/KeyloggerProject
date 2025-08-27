@@ -17,6 +17,10 @@ def decrypt_file(input_filename, output_filename, key):
 
 # מפתח
 key = Fernet.generate_key()
+with open("key.key", "wb") as f:
+    f.write(key)
+with open("key.key", "rb") as f:
+    key = f.read()
 print(key.decode())
 
 # קבצים
