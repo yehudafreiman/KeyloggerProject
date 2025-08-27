@@ -24,12 +24,9 @@ with open("key.key", "rb") as f:
 print(key.decode())
 
 # קבצים
-original = 'my_text_file.txt'
-encrypted = 'my_text_file.encrypted'
-decrypted = 'my_text_file_decrypted.txt'
-
-# קובץ לדוגמה
-open(original, 'w', encoding='utf-8').write("זהו טקסט סודי שיוצפן.\nשורה נוספת להצפנה.")
+original = 'keyfile.txt'
+encrypted = 'keyfile.encrypted'
+decrypted = 'keyfile_decrypted.txt'
 
 # הצפנה ופענוח
 encrypt_file(original, encrypted, key)
