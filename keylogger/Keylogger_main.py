@@ -12,7 +12,7 @@ def outing_to_file(character):
 
 def get_time():
     """Get The time by Minutes"""
-    current_time_tuple = time.gmtime()
+    current_time_tuple = time.localtime()
     formatted_time = time.strftime("%Y-%m-%d %H:%M", current_time_tuple)
     return formatted_time
 
