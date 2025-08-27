@@ -10,7 +10,6 @@ def outing_to_file(character):
                 char = f"{j}\n{i[j]}\n"
                 logkey.write(char)
 
-
 def get_time():
     """Get The time by Minutes"""
     current_time_tuple = time.gmtime()
