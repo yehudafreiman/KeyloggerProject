@@ -1,0 +1,18 @@
+Path to Keylogger directory:
+'/Users/refaelhalifa/Documents/Limud/KodKode/Python/Python Files/keylogger'
+
+Code for running python in background:
+nohup python3 -u Keylogger_main.py › Keylogger_main.log 2>&1 &
+
+Finding running codes on bg:
+lsop nohup.out \and find the log key
+
+Code for running python in background only with terminal open:
+python3 Keylogger_main.py &
+
+Code for finding running jobs on bg only on the same opened terminal:
+jobs
+
+Code for killing running jobs on bg only on the same opened terminal:
+kill %(NO. Of Operation)
+kill -9 %(NO. Of Operation)
