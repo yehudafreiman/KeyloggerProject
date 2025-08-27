@@ -23,7 +23,7 @@ Keylogger ב־Python
 	1.	התקן את הספרייה הדרושה:
 pip install pynput
 	2.	הרץ את הקובץ:
-python keylogger.py
+python keylogger_main.py
 
 פלט:
 	•	כל ההקלדות נרשמות בזמן אמת.
