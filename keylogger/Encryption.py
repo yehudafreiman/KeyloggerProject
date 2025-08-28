@@ -1,27 +1,32 @@
-# pip install cryptography
 from cryptography.fernet import Fernet
+import os
 
-# הצפנה
 def encrypt_file(input_filename, output_filename, key):
     f = Fernet(key)
-    data = open(input_filename, 'rb').read()
+    with open(input_filename, 'rb') as file:
+        data = file.read()
     enc = f.encrypt(data)
-    open(output_filename, 'wb').write(enc)
+    with open(output_filename, 'wb') as file:
+        file.write(enc)
 
-# פענוח
 def decrypt_file(input_filename, output_filename, key):
     f = Fernet(key)
-    data = open(input_filename, 'rb').read()
+    with open(input_filename, 'rb') as file:
+        data = file.read()
     dec = f.decrypt(data)
-    open(output_filename, 'wb').write(dec)
+    with open(output_filename, 'wb') as file:
+        file.write(dec)
 
 # מפתח
-key = Fernet.generate_key()
-with open("key.key", "wb") as f:
-    f.write(key)
-with open("key.key", "rb") as f:
-    key = f.read()
-print(key.decode())
+if not os.path.exists("key.key"):
+    key = Fernet.generate_key()
+    with open("key.key", "wb") as f:
+        f.write(key)
+else:
+    with open("key.key", "rb") as f:
+        key = f.read()
+
+print("Key:", key.decode())
 
 # קבצים
 original = 'keyfile.txt'
@@ -31,3 +36,4 @@ decrypted = 'keyfile_decrypted.txt'
 # הצפנה ופענוח
 encrypt_file(original, encrypted, key)
 decrypt_file(encrypted, decrypted, key)
+print("Encryption & Decryption done.")
