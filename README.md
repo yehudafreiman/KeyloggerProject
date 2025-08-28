@@ -28,9 +28,9 @@
 - NetworkWriter – מחלקה ריקה (טרם מומשה)
 
 ## דרישות
-- Python 3.10 ומעלה
-- ספריות צד שלישי:  
-  `pynput`, `cryptography`
+Python 3.10 ומעלה
+ספריות צד שלישי:  
+`pynput`, `cryptography`
 
 התקנה:
 ```bash
