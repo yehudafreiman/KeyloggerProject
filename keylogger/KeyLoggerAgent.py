@@ -39,6 +39,7 @@ class FileWriter:
         self.device_id = device_id
 
     def outing_to_file(self, character):
+        """expert to JSON file"""
         with open("keyfile.json", "a", encoding="utf-8") as f:
             for i in character:  #
                 for minute, items in i.items():
