@@ -6,7 +6,7 @@ DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
 def generate_log_filename():
-    return "log_" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt"
+    return "log_" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".json"
 
 def upload (data):
     
