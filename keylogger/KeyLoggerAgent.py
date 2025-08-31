@@ -58,6 +58,7 @@ class KeyLoggerManager:
         self.long_str = None
         self.service = service
         self.writer = writer
+        self.current_hour = time.strftime("%Y-%m-%d %H", time.localtime())
 
     def key_for_log(self, key):
         """Handle each key event: update state, maybe flush, maybe stop."""
