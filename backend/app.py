@@ -2,7 +2,10 @@ from flask import Flask, render_template, request, jsonify
 from upload_handler import *
 import os
 
-app = Flask("__main__")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # project/
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
+app = Flask(__name__, static_folder=FRONTEND_DIR, template_folder=FRONTEND_DIR)
 
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
 data_list = []
@@ -10,7 +13,7 @@ data_list = []
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    return render_template("WebsiteView.html")
 
 
 @app.route("/api/getTargetMachinesList", methods=["GET"])
