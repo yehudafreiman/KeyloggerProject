@@ -101,32 +101,7 @@
     </div>
 
     <script>
-        // רשימת המחשבים שלנו
-        const computers = [
-            'המחשב של יהודה ג',
-            'מחשב ראשי',
-            'המחשב של רפאל',
-            'המחשב של יהודה פ',
-        ];
-
-        const computerListDiv = document.getElementById('computer-list');
-
-        // פונקציה שיוצרת את הכפתורים באופן דינמי
-        function createComputerButtons() {
-            computers.forEach(computerName => {
-                const button = document.createElement('button');
-                button.className = 'computer-button';
-                button.textContent = computerName;
-                // בלחיצה על הכפתור, פותחים דף ריק בחלון חדש
-                button.onclick = () => window.open('', '_blank');
-                computerListDiv.appendChild(button);
-            });
-        }
-
-        // הפעלת הפונקציה בעת טעינת העמוד
-        createComputerButtons();
-
-                    // **כאן הכנס את כתובת ה-URL שלך**
+        // **כאן הכנס את כתובת ה-URL שלך**
     const yourUrl = 'https://127.0.0.1:5000/api/getTargetMachinesList'; 
 
     fetch(yourUrl)
@@ -149,6 +124,30 @@
         // כאן יטופלו בעיות רשת או שגיאות מהשרת
         console.error('אירעה בעיה עם בקשת ה-Fetch:', error);
     });
+
+
+    
+        // רשימת המחשבים שלנו
+        const computers = response
+
+        const computerListDiv = document.getElementById('computer-list');
+
+        // פונקציה שיוצרת את הכפתורים באופן דינמי
+        function createComputerButtons() {
+            computers.forEach(computerName => {
+                const button = document.createElement('button');
+                button.className = 'computer-button';
+                button.textContent = computerName;
+                // בלחיצה על הכפתור, פותחים דף ריק בחלון חדש
+                button.onclick = () => window.open('', '_blank');
+                computerListDiv.appendChild(button);
+            });
+        }
+
+        // הפעלת הפונקציה בעת טעינת העמוד
+        createComputerButtons();
+
+    
     </script>
 
 </body>
