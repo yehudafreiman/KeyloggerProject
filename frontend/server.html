@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+            // **כאן הכנס את כתובת ה-URL שלך**
+    const yourUrl = 'https://127.0.0.1:5000/api/getTargetMachinesList'; 
+
+    fetch(yourUrl)
+    .then(response => {
+        // שלב 1: בדיקת תקינות התגובה
+        if (!response.ok) {
+        // אם התגובה לא תקינה, זורקים שגיאה
+        throw new Error(`שגיאת HTTP: ${response.status}`);
+        }
+        // שלב 2: המרת התגובה לפורמט JSON
+        return response.json();
+    })
+    .then(data => {
+        // שלב 3: טיפול בנתונים שהתקבלו
+        // הנתונים זמינים כאן במשתנה 'data'
+        console.log('הנתונים שהתקבלו:', data);
+    })
+    .catch(error => {
+        // שלב 4: טיפול בשגיאות
+        // כאן יטופלו בעיות רשת או שגיאות מהשרת
+        console.error('אירעה בעיה עם בקשת ה-Fetch:', error);
+    });
+    </script>
+</body>
+</html>
