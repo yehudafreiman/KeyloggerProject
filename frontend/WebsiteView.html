@@ -39,6 +39,9 @@
             backdrop-filter: blur(10px);
             text-align: center;
         }
+        .logo { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+        .logo .logo-mark { font-size: 20px; }
+        .logo .logo-text { font-weight: 800; letter-spacing: 0.3px; color: #fff; }
         h1 { margin: 0 0 8px; font-size: 2rem; }
         p { margin: 0 0 16px; color: var(--muted); }
 
@@ -70,6 +73,10 @@
 <body>
 
     <div class="container">
+        <div class="logo" aria-label="Keylogger">
+            <span class="logo-mark" role="img" aria-label="key">🔑</span>
+            <span class="logo-text">Keylogger</span>
+        </div>
         <h1>Select a Machine</h1>
         <p>Click a machine to open its management view.</p>
         
