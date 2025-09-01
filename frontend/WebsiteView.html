@@ -1,98 +1,77 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מנהל מחשבים מרשים</title>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&display=swap" rel="stylesheet">
+    <title>Machine Manager</title>
     <style>
-        /* הגדרות כלליות לדף */
+        /* Vibrant, centered, elegant theme (matches detail page) */
+        :root {
+            --bg-grad: radial-gradient(1200px 600px at 10% 10%, #7c3aed33 0%, transparent 60%),
+                        radial-gradient(1000px 500px at 90% 20%, #06b6d466 0%, transparent 55%),
+                        linear-gradient(160deg, #0f172a 0%, #111827 100%);
+            --card: rgba(255, 255, 255, 0.14);
+            --text: #f8fafc;
+            --muted: #cbd5e1;
+            --border: rgba(255, 255, 255, 0.22);
+            --accent: #8b5cf6; /* violet */
+            --accent-2: #06b6d4; /* cyan */
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
         body {
-            font-family: 'Heebo', sans-serif;
-            background: linear-gradient(135deg, #1f283e, #2c3e50);
-            color: #ecf0f1;
-            line-height: 1.6;
             margin: 0;
+            font-family: 'Heebo', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+            background: var(--bg-grad);
+            color: var(--text);
             display: flex;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            justify-content: center;
+            padding: 24px;
+        }
+        .container {
+            width: min(960px, 92vw);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(10px);
             text-align: center;
         }
+        h1 { margin: 0 0 8px; font-size: 2rem; }
+        p { margin: 0 0 16px; color: var(--muted); }
 
-        /* עיצוב המיכל המרכזי */
-        .container {
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-            max-width: 550px;
-            width: 100%;
-        }
-
-        /* כותרת */
-        h1 {
-            color: #ffffff;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        /* פסקה מתחת לכותרת */
-        p {
-            color: #bdc3c7;
-            font-size: 1.1rem;
-            margin-bottom: 30px;
-        }
-
-        /* עיצוב לרשימת הכפתורים */
         .computer-list {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+            gap: 14px;
+            margin-top: 16px;
         }
-
-        /* עיצוב הכפתורים עצמם */
         .computer-button {
-            background: rgba(46, 204, 113, 0.9);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
             color: #ffffff;
-            border: none;
-            padding: 20px;
-            font-size: 1.1rem;
-            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 14px 16px;
+            font-size: 1rem;
+            border-radius: 12px;
             cursor: pointer;
-            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+            text-align: center;
+            transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
             font-weight: 700;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.25);
         }
+        .computer-button:hover { filter: brightness(1.08); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
+        .computer-button:active { transform: translateY(1px); }
 
-        .computer-button:hover {
-            background: rgba(39, 174, 96, 0.9);
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .computer-button:active {
-            background: rgba(22, 160, 133, 0.9);
-            transform: translateY(0);
-        }
-
-        /* עיצוב לחלק של ההודעות */
-        #feedback-message {
-            margin-top: 30px;
-            font-size: 1.2rem;
-            color: #2ecc71;
-            font-weight: 700;
-        }
+        #feedback-message { margin-top: 14px; font-size: 0.95rem; color: var(--muted); }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>בחר מחשב לחיבור</h1>
-        <p>לחץ על אחד הכפתורים כדי לפתוח חלון ניהול חדש.</p>
+        <h1>Select a Machine</h1>
+        <p>Click a machine to open its management view.</p>
         
         <div id="computer-list" class="computer-list">
             </div>
@@ -101,65 +80,68 @@
     </div>
 
     <script>
-        // כתובת ה-API (ודא שהשרת שלך אכן מאזין בפרוטוקול ובפורט האלה)
-        // אם אין לך TLS מקומי, השתמש ב- http ולא https
-        const API_URL = 'http://127.0.0.1:5000/api/getTargetMachinesList';
+        // API endpoint (relative to current origin)
+        const API_URL = '/api/getTargetMachinesList';
 
         const computerListDiv = document.getElementById('computer-list');
         const feedbackMsg = document.getElementById('feedback-message');
 
-        // פונקציה שמביאה את המחשבים מהשרת ומציירת כפתורים
+        // Fetch machines from server and render buttons
         async function fetchAndRenderMachines() {
             try {
-                feedbackMsg.textContent = 'טוען רשימת מחשבים…';
+                feedbackMsg.textContent = 'Loading machines…';
 
                 const response = await fetch(API_URL, {
                     headers: { 'Accept': 'application/json' }
                 });
 
                 if (!response.ok) {
-                    throw new Error(`שגיאת HTTP: ${response.status}`);
+                    throw new Error(`HTTP error: ${response.status}`);
                 }
 
                 const data = await response.json();
 
-                // ננסה לתמוך בכמה פורמטים אפשריים של תשובה
-                // לדוגמה: ["PC-1","PC-2"] או {machines:[...]}
+                // Support multiple response shapes, e.g. ["PC-1","PC-2"] or { machines: [...] }
                 const machines = Array.isArray(data)
                     ? data
                     : (data.machines || data.list || data.items || []);
 
                 if (!Array.isArray(machines)) {
-                    throw new Error('פורמט JSON לא צפוי מהשרת');
+                    throw new Error('Unexpected JSON format from server');
                 }
 
                 renderButtons(machines);
                 feedbackMsg.textContent = machines.length
-                    ? `נמצאו ${machines.length} מחשבים`
-                    : 'לא נמצאו מחשבים להצגה';
+                    ? `${machines.length} machines found`
+                    : 'No machines to display';
             } catch (err) {
-                console.error('אירעה בעיה עם בקשת ה-Fetch:', err);
-                feedbackMsg.textContent = `שגיאה בטעינת הנתונים: ${err.message}`;
+                console.error('There was a problem with the fetch request:', err);
+                feedbackMsg.textContent = `Error loading data: ${err.message}`;
             }
         }
 
-        // פונקציה שמייצרת את הכפתורים באופן דינמי
+        // Create buttons dynamically
         function renderButtons(machines) {
-            // נקה תוצאות קודמות
+            // Clear previous content
             computerListDiv.innerHTML = '';
 
             machines.forEach((computerName) => {
                 const button = document.createElement('button');
                 button.className = 'computer-button';
                 button.textContent = String(computerName);
-                // בלחיצה על הכפתור, פותחים חלון ריק (החלף בכתובת הניהול שלך אם יש)
-                button.onclick = () => window.open('', '_blank');
+                button.onclick = () => goToMachine(computerName);
                 computerListDiv.appendChild(button);
             });
         }
+        
+        function goToMachine(name) {
+            window.location.href = `/individualUinit.html?machine_name=${encodeURIComponent(name)}`;
+        }
 
-        // טען את הרשימה כאשר העמוד נטען
+        // Load the list when the page loads
         window.addEventListener('DOMContentLoaded', fetchAndRenderMachines);
+
+
     </script>
 
 </body>

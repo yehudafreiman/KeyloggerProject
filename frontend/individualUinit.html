@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        /* Vibrant, centered, elegant theme */
+        :root {
+            --bg-grad: radial-gradient(1200px 600px at 10% 10%, #7c3aed33 0%, transparent 60%),
+                        radial-gradient(1000px 500px at 90% 20%, #06b6d466 0%, transparent 55%),
+                        linear-gradient(160deg, #0f172a 0%, #111827 100%);
+            --card: rgba(255, 255, 255, 0.14);
+            --card-solid: #ffffff;
+            --text: #f8fafc;
+            --muted: #cbd5e1;
+            --border: rgba(255, 255, 255, 0.22);
+            --accent: #8b5cf6; /* violet */
+            --accent-2: #06b6d4; /* cyan */
+            --chip: rgba(255, 255, 255, 0.08);
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            font-family: 'Heebo', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+            background: var(--bg-grad);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .container {
+            width: min(960px, 92vw);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(10px);
+        }
+        .topbar { display: flex; align-items: center; gap: 12px; justify-content: center; }
+        .back-link {
+            text-decoration: none;
+            color: #fff;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+        h1 { margin: 10px 0 6px; font-size: 1.9rem; text-align: center; }
+        .subtitle { color: var(--muted); margin: 0 0 16px; text-align: center; }
+
+        /* List styling */
+        #machine-data { margin-top: 8px; }
+        #machine-data > ul { list-style: none; padding: 0; margin: 0; }
+        #machine-data > ul > li {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            margin: 10px 0;
+        }
+        details { padding: 14px 16px; }
+        summary {
+            cursor: pointer;
+            font-weight: 700;
+            outline: none;
+            list-style: none;
+            color: #fff;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary::after {
+            content: '▸';
+            float: right;
+            color: var(--muted);
+            transition: transform 0.2s ease;
+        }
+        details[open] summary::after { transform: rotate(90deg); }
+        details > ul { list-style: none; margin: 10px 0 0; padding-left: 0; }
+        details > ul > li {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.95em;
+            padding: 8px 10px;
+            margin: 6px 0;
+            background: var(--chip);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="topbar">
+            <a class="back-link" href="http://127.0.0.1:5000">← Back</a>
+        </div>
+        <h1></h1>
+        <p class="subtitle">Click a section to view its data</p>
+        <div id="machine-data"></div>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const machine_name = params.get("machine_name");
+        console.log(machine_name);
+        document.querySelector("h1").textContent = `Machine: ${machine_name}`;
+        window.onload = () => {
+            document.title = `Machine: ${machine_name}`;
+        };
+
+        const formatInline = (val) => {
+            if (val === null || val === undefined) return String(val);
+            if (typeof val === 'object') {
+                try { return JSON.stringify(val); } catch (e) { return String(val); }
+            }
+            return String(val);
+        };
+
+        getMachineData = async () => {
+            try {
+                const response = await fetch(`/api/getData/${encodeURIComponent(machine_name)}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log(data);
+
+                const container = document.getElementById("machine-data");
+                container.innerHTML = "";
+
+                if (!data || Object.keys(data).length === 0) {
+                    container.textContent = "No data";
+                    return;
+                }
+
+                const ul = document.createElement("ul");
+                Object.entries(data).forEach(([key, value]) => {
+                    const li = document.createElement("li");
+                    const details = document.createElement("details");
+                    const summary = document.createElement("summary");
+                    summary.textContent = key;
+
+                    const sublist = document.createElement("ul");
+
+                    const onlyData = (value && typeof value === 'object') ? value.data : undefined;
+
+                    if (Array.isArray(onlyData)) {
+                        // Array under 'data': show each element inline (index: value) or flatten object elements
+                        onlyData.forEach((item, idx) => {
+                            if (item && typeof item === 'object' && !Array.isArray(item)) {
+                                Object.entries(item).forEach(([innerKey, innerVal]) => {
+                                    const subItem = document.createElement("li");
+                                    subItem.textContent = `${innerKey}: ${formatInline(innerVal)}`;
+                                    sublist.appendChild(subItem);
+                                });
+                            } else {
+                                const subItem = document.createElement("li");
+                                subItem.textContent = `[${idx}]: ${formatInline(item)}`;
+                                sublist.appendChild(subItem);
+                            }
+                        });
+                    } else if (onlyData && typeof onlyData === 'object') {
+                        Object.entries(onlyData).forEach(([innerKey, innerVal]) => {
+                            const subItem = document.createElement("li");
+                            subItem.textContent = `${innerKey}: ${formatInline(innerVal)}`;
+                            sublist.appendChild(subItem);
+                        });
+                    } else if (onlyData !== undefined) {
+                        const subItem = document.createElement("li");
+                        subItem.textContent = formatInline(onlyData);
+                        sublist.appendChild(subItem);
+                    } else {
+                        const subItem = document.createElement("li");
+                        subItem.textContent = "No data";
+                        sublist.appendChild(subItem);
+                    }
+
+                    details.appendChild(summary);
+                    details.appendChild(sublist);
+                    li.appendChild(details);
+                    ul.appendChild(li);
+                });
+
+                container.appendChild(ul);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            }
+        };
+
+        getMachineData();
+
+    </script>
+</body>
+</html>
