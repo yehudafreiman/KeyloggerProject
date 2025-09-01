@@ -1,6 +1,10 @@
 import time
 from flask import request, jsonify, json
 import os
+from cryptography.fernet import Fernet
+
+key = b'9YxKn3m3G5qXz2o9xYxKn3m3G5qXz2o9xYxKn3m3G5q='
+fernet = Fernet(key)
 
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
 os.makedirs(DATA_FOLDER, exist_ok=True)
@@ -25,7 +29,7 @@ def upload (data):
     filename = generate_log_filename()
     file_path = os.path.join(machine_folder, filename)
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(json.dumps(log_data, indent=4))  # pretty printed JSON
+    with open(file_path, "wb") as f:
+        f.write(fernet.encrypt(json.dumps(log_data, indent=4).encode()))  # pretty printed JSON
 
     return jsonify({"status": "success", "file": file_path}), 200
