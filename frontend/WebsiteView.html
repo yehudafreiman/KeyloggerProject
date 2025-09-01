@@ -95,41 +95,71 @@
         <p>לחץ על אחד הכפתורים כדי לפתוח חלון ניהול חדש.</p>
         
         <div id="computer-list" class="computer-list">
-        </div>
+            </div>
 
         <div id="feedback-message"></div>
     </div>
 
     <script>
-        const yourUrl = 'https://127.0.0.1:5000/api/getTargetMachinesList'; 
-        const computerListDiv = document.getElementById('computer-list');
+        // כתובת ה-API (ודא שהשרת שלך אכן מאזין בפרוטוקול ובפורט האלה)
+        // אם אין לך TLS מקומי, השתמש ב- http ולא https
+        const API_URL = 'http://127.0.0.1:5000/api/getTargetMachinesList';
 
-        function createComputerButtons(computers) {
-            computers.forEach(computerName => {
+        const computerListDiv = document.getElementById('computer-list');
+        const feedbackMsg = document.getElementById('feedback-message');
+
+        // פונקציה שמביאה את המחשבים מהשרת ומציירת כפתורים
+        async function fetchAndRenderMachines() {
+            try {
+                feedbackMsg.textContent = 'טוען רשימת מחשבים…';
+
+                const response = await fetch(API_URL, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`שגיאת HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // ננסה לתמוך בכמה פורמטים אפשריים של תשובה
+                // לדוגמה: ["PC-1","PC-2"] או {machines:[...]}
+                const machines = Array.isArray(data)
+                    ? data
+                    : (data.machines || data.list || data.items || []);
+
+                if (!Array.isArray(machines)) {
+                    throw new Error('פורמט JSON לא צפוי מהשרת');
+                }
+
+                renderButtons(machines);
+                feedbackMsg.textContent = machines.length
+                    ? `נמצאו ${machines.length} מחשבים`
+                    : 'לא נמצאו מחשבים להצגה';
+            } catch (err) {
+                console.error('אירעה בעיה עם בקשת ה-Fetch:', err);
+                feedbackMsg.textContent = `שגיאה בטעינת הנתונים: ${err.message}`;
+            }
+        }
+
+        // פונקציה שמייצרת את הכפתורים באופן דינמי
+        function renderButtons(machines) {
+            // נקה תוצאות קודמות
+            computerListDiv.innerHTML = '';
+
+            machines.forEach((computerName) => {
                 const button = document.createElement('button');
                 button.className = 'computer-button';
-                button.textContent = computerName;
+                button.textContent = String(computerName);
+                // בלחיצה על הכפתור, פותחים חלון ריק (החלף בכתובת הניהול שלך אם יש)
                 button.onclick = () => window.open('', '_blank');
                 computerListDiv.appendChild(button);
             });
         }
 
-        fetch(yourUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`שגיאת HTTP: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('הנתונים שהתקבלו:', data);
-            // קוראים לפונקציה ושולחים את הנתונים
-            createComputerButtons(data); 
-        })
-        .catch(error => {
-            console.error('אירעה בעיה עם בקשת ה-Fetch:', error);
-            document.getElementById('feedback-message').textContent = `שגיאה: ${error.message}`;
-        });
+        // טען את הרשימה כאשר העמוד נטען
+        window.addEventListener('DOMContentLoaded', fetchAndRenderMachines);
     </script>
 
 </body>

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from upload_handler import *
 import os
 
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # project/
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
