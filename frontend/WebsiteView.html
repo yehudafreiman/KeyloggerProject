@@ -95,59 +95,41 @@
         <p>לחץ על אחד הכפתורים כדי לפתוח חלון ניהול חדש.</p>
         
         <div id="computer-list" class="computer-list">
-            </div>
+        </div>
 
         <div id="feedback-message"></div>
     </div>
 
     <script>
-        // **כאן הכנס את כתובת ה-URL שלך**
-    const yourUrl = 'https://127.0.0.1:5000/api/getTargetMachinesList'; 
-
-    fetch(yourUrl)
-    .then(response => {
-        // שלב 1: בדיקת תקינות התגובה
-        if (!response.ok) {
-        // אם התגובה לא תקינה, זורקים שגיאה
-        throw new Error(`שגיאת HTTP: ${response.status}`);
-        }
-        // שלב 2: המרת התגובה לפורמט JSON
-        return response.json();
-    })
-    .then(data => {
-        // שלב 3: טיפול בנתונים שהתקבלו
-        // הנתונים זמינים כאן במשתנה 'data'
-        console.log('הנתונים שהתקבלו:', data);
-    })
-    .catch(error => {
-        // שלב 4: טיפול בשגיאות
-        // כאן יטופלו בעיות רשת או שגיאות מהשרת
-        console.error('אירעה בעיה עם בקשת ה-Fetch:', error);
-    });
-
-
-    
-        // רשימת המחשבים שלנו
-        const computers = response
-
+        const yourUrl = 'https://127.0.0.1:5000/api/getTargetMachinesList'; 
         const computerListDiv = document.getElementById('computer-list');
 
-        // פונקציה שיוצרת את הכפתורים באופן דינמי
-        function createComputerButtons() {
+        function createComputerButtons(computers) {
             computers.forEach(computerName => {
                 const button = document.createElement('button');
                 button.className = 'computer-button';
                 button.textContent = computerName;
-                // בלחיצה על הכפתור, פותחים דף ריק בחלון חדש
                 button.onclick = () => window.open('', '_blank');
                 computerListDiv.appendChild(button);
             });
         }
 
-        // הפעלת הפונקציה בעת טעינת העמוד
-        createComputerButtons();
-
-    
+        fetch(yourUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`שגיאת HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('הנתונים שהתקבלו:', data);
+            // קוראים לפונקציה ושולחים את הנתונים
+            createComputerButtons(data); 
+        })
+        .catch(error => {
+            console.error('אירעה בעיה עם בקשת ה-Fetch:', error);
+            document.getElementById('feedback-message').textContent = `שגיאה: ${error.message}`;
+        });
     </script>
 
 </body>
