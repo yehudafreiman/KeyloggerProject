@@ -58,7 +58,7 @@
         }
 
         #delete-logs-button {
-            background: var(--accent);
+            background: #ef4444; /* hazard red */
             color: #fff;
             border: none;
             border-radius: 999px;
@@ -67,8 +67,8 @@
             cursor: pointer;
             transition: background 0.2s ease;
         }
-        .delete-logs-button:hover {
-            background: var(--accent-2);
+        .delete-logs-button:hover, #delete-logs-button:hover {
+            background: #dc2626; /* deeper hazard red */
         }
 
         /* Toggle switch button */
@@ -160,6 +160,38 @@
             border-left: 3px solid var(--accent);
             border-radius: 8px;
             color: #e2e8f0;
+            /* Make long lines wrap nicely */
+            max-width: 100%;
+            overflow-wrap: anywhere; /* modern wrap for long tokens */
+            word-break: break-word;   /* fallback */
+            white-space: pre-wrap;    /* preserve spaces but allow wrapping */
+        }
+
+        /* Empty state styling for no data */
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 16px 20px;
+            margin: 24px auto;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--muted);
+            max-width: 420px;
+        }
+        .empty-state::before {
+            content: "📭";
+            margin-right: 8px;
+        }
+        /* Inline empty item inside a details section */
+        .empty-inline {
+            display: block;
+            text-align: center;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.04);
+            border-left-color: transparent;
         }
     </style>
 </head>
@@ -208,7 +240,10 @@
                 container.innerHTML = "";
 
                 if (!data || Object.keys(data).length === 0) {
-                    container.textContent = "No data";
+                    const empty = document.createElement("div");
+                    empty.className = "empty-state";
+                    empty.textContent = "No data";
+                    container.appendChild(empty);
                     return;
                 }
 
@@ -250,6 +285,7 @@
                         sublist.appendChild(subItem);
                     } else {
                         const subItem = document.createElement("li");
+                        subItem.className = "empty-inline";
                         subItem.textContent = "No data";
                         sublist.appendChild(subItem);
                     }
@@ -263,6 +299,12 @@
                 container.appendChild(ul);
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error);
+                const container = document.getElementById("machine-data");
+                container.innerHTML = "";
+                const empty = document.createElement("div");
+                empty.className = "empty-state";
+                empty.textContent = "No data";
+                container.appendChild(empty);
             }
         };
 

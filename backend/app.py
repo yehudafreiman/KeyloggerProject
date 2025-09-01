@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
-from upload_handler import *
 import os
+import time
 import json
 from cryptography.fernet import Fernet
 
@@ -15,6 +15,8 @@ fernet = Fernet(key)
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
 DECRYPTED_FOLDER = os.path.join(os.path.dirname(__file__), "decrypted_data")
 data_list = []
+# In-memory desired toggle state per machine
+DESIRED_TOGGLE = {}
 
 
 @app.route("/")
@@ -77,19 +79,49 @@ def upload_api():
         decrypted_file_path = os.path.join(decrypted_machine_path, decrypted_file_name)
         with open(decrypted_file_path, "w", encoding="utf-8") as f:
             json.dump(decrypted_json, f, indent=2, ensure_ascii=False)
-
-        return jsonify({"status": "success"}), 200
+        
+        # Acknowledge successful upload
+        return jsonify({"status": "ok"}), 200
     except Exception:
         return jsonify({"error": "Decryption failed"}), 400
 
 
+@app.route("/api/toggle", methods=["GET", "POST"])
+def toggle_api():
+    # POST sets the desired state; GET retrieves it
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        machine = data.get("machine") or request.args.get("machine") or "unknown"
+        status = bool(data.get("status"))
+        DESIRED_TOGGLE[machine] = status
+        print({"machine": machine, "status": status})
+        return jsonify({"machine": machine, "status": status}), 200
 
+    machine = request.args.get("machine") or "unknown"
+    status = DESIRED_TOGGLE.get(machine, True)
+    return jsonify({"machine": machine, "status": status}), 200
 
-# @app.route("/api/toggle", methods=["POST"])
-# def toggle_api():
-#     data = jsonify(request.get_json())
+@app.route("/api/deleteLogs/<machine>", methods=["DELETE"])
+def delete_logs(machine):
+    machine_path = os.path.join(DECRYPTED_FOLDER, machine)
+    if not os.path.exists(machine_path):
+        return jsonify({"error": "Machine not found"}), 404
 
-#     return data, 200
+    # Delete all log files for the specified machine
+    for file_name in os.listdir(machine_path):
+        file_path = os.path.join(machine_path, file_name)
+        os.remove(file_path)
+    
+    machine_path = os.path.join(DATA_FOLDER, machine)
+    if not os.path.exists(machine_path):
+        return jsonify({"error": "Machine not found"}), 404
+
+    # Delete all log files for the specified machine
+    for file_name in os.listdir(machine_path):
+        file_path = os.path.join(machine_path, file_name)
+        os.remove(file_path)
+
+    return jsonify({"status": "ok"}), 200
 
 if __name__ == "__main__":
     app.run(debug=True) 

