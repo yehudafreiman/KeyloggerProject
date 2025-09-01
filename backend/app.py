@@ -24,9 +24,7 @@ def get_data(machine):
     machine_path = os.path.join(DATA_FOLDER, machine)
     if not os.path.exists(machine_path):
         return jsonify({"error": "Machine not found"}), 404
-    
-    # json_files = [f for f in os.listdir(machine_path)]
-    
+        
     data_objects = {}
     for file_name in os.listdir(machine_path):
         file_path = os.path.join(machine_path, file_name)
