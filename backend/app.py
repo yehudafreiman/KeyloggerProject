@@ -45,7 +45,14 @@ def upload_api():
     upload(data)
     data_list.append(data)
     print("Current data list:", data_list)
-    return jsonify({"status": "success"}), 200
+    return toggle_api()
+    # return jsonify({"status": "success"}), 200
+
+@app.route("/api/toggle", methods=["POST"])
+def toggle_api():
+    data = jsonify(request.get_json())
+
+    return data, 200
 
 if __name__ == "__main__":
     app.run(debug=True) 
