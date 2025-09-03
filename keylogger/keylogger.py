@@ -15,7 +15,7 @@ class KeyLoggerService:
         self.all_logs = []
 
     def add_key(self, key):
-        now_time = time.strftime("%d/%m/%y %H:%M", time.localtime())
+        now_time = time.strftime("YYYY-MM-DD HH:MM:SS", time.localtime())
         if now_time in self.key_log_dict:
             self.key_log_dict[now_time].append(str(key))
         else:
