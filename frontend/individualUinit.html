@@ -1,395 +1,533 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-    <style>
-        /* Vibrant, centered, elegant theme */
-        :root {
-            --bg-grad: radial-gradient(1200px 600px at 10% 10%, #7c3aed33 0%, transparent 60%),
-                        radial-gradient(1000px 500px at 90% 20%, #06b6d466 0%, transparent 55%),
-                        linear-gradient(160deg, #0f172a 0%, #111827 100%);
-            --card: rgba(255, 255, 255, 0.14);
-            --card-solid: #ffffff;
-            --text: #f8fafc;
-            --muted: #cbd5e1;
-            --border: rgba(255, 255, 255, 0.22);
-            --accent: #8b5cf6; /* violet */
-            --accent-2: #06b6d4; /* cyan */
-            --chip: rgba(255, 255, 255, 0.08);
-        }
-        * { box-sizing: border-box; }
-        html, body { min-height: 100%; }
-        body {
-            margin: 0;
-            font-family: 'Heebo', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
-            background: var(--bg-grad);
-            color: var(--text);
-            display: flex;
-            align-items: flex-start; /* anchor content to top to allow natural scroll */
-            justify-content: center;
-            padding: 24px;
-            overflow-y: auto; /* ensure page can scroll */
-        }
-        .container {
-            width: min(960px, 92vw);
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 24px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(10px);
-            max-height: 90vh; /* keep within viewport */
-            overflow-y: auto; /* internal scroll when content is long */
-        }
-        .topbar { display: flex; align-items: center; gap: 12px; justify-content: center; }
-        .logo { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
-        .logo .logo-mark { font-size: 20px; }
-        .logo .logo-text { font-weight: 800; letter-spacing: 0.3px; color: #fff; }
-        .back-link {
-            text-decoration: none;
-            color: #fff;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            padding: 8px 12px;
-            border-radius: 999px;
-            font-weight: 700;
-            border: 1px solid rgba(255,255,255,0.25);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title></title>
+  <style>
+    :root {
+      --bg-grad: radial-gradient(1200px 600px at 10% 10%, #7c3aed33 0%, transparent 60%),
+                  radial-gradient(1000px 500px at 90% 20%, #06b6d466 0%, transparent 55%),
+                  linear-gradient(160deg, #0f172a 0%, #111827 100%);
+      --card: rgba(255, 255, 255, 0.14);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --border: rgba(255, 255, 255, 0.22);
+      --accent: #8b5cf6;
+      --accent-2: #06b6d4;
+      --chip: rgba(255, 255, 255, 0.08);
+      --danger: #ef4444;
+      --danger-2: #dc2626;
 
-        #delete-logs-button {
-            background: #ef4444; /* hazard red */
-            color: #fff;
-            border: none;
-            border-radius: 999px;
-            padding: 8px 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-        .delete-logs-button:hover, #delete-logs-button:hover {
-            background: #dc2626; /* deeper hazard red */
-        }
+      /* צבע לשורת חיפוש */
+      --search-bg: rgba(139, 92, 246, 0.18);
+      --search-border: rgba(139, 92, 246, 0.5);
+      --search-placeholder: #c4b5fd;
+      --search-btn-bg: rgba(139, 92, 246, 0.28);
+    }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Heebo', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+      background: var(--bg-grad);
+      color: var(--text);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .container {
+      width: min(960px, 92vw);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+      backdrop-filter: blur(10px);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
 
-        /* Toggle switch button */
-        .toggle {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            /* Match back button height/feel */
-            padding: 8px 12px 8px 44px; /* leave room for knob */
-            background: rgba(255,255,255,0.08);
-            color: var(--text);
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s ease, border-color 0.2s ease;
-        }
-        .toggle::before {
-            /* track */
-            content: "";
-            position: absolute;
-            left: 10px;
-            width: 28px;
-            height: 16px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.15);
-            border: 1px solid var(--border);
-            box-shadow: inset 0 0 0 2px rgba(0,0,0,0.15);
-        }
-        .toggle::after {
-            /* knob */
-            content: "";
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            transition: left 0.18s ease;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.35);
-        }
-        .toggle.on {
-            background: rgba(139, 92, 246, 0.15);
-            border-color: rgba(139, 92, 246, 0.55);
-        }
-        .toggle.on::after {
-            left: 24px; /* move knob to the right */
-        }
-        .toggle:disabled { opacity: 0.6; cursor: not-allowed; }
-        h1 { margin: 10px 0 6px; font-size: 1.9rem; text-align: center; }
-        .subtitle { color: var(--muted); margin: 0 0 16px; text-align: center; }
+    .topbar { display: flex; align-items: center; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .logo { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+    .logo .logo-mark { font-size: 20px; }
+    .logo .logo-text { font-weight: 800; letter-spacing: 0.3px; color: #fff; }
+    .back-link {
+      text-decoration: none;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.25);
+    }
 
-        /* List styling */
-        #machine-data { margin-top: 8px; }
-        #machine-data > ul { list-style: none; padding: 0; margin: 0; }
-        #machine-data > ul > li {
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.06);
-            margin: 10px 0;
-        }
-        details { padding: 14px 16px; }
-        summary {
-            cursor: pointer;
-            font-weight: 700;
-            outline: none;
-            list-style: none;
-            color: #fff;
-        }
-        summary::-webkit-details-marker { display: none; }
-        summary::after {
-            content: '▸';
-            float: right;
-            color: var(--muted);
-            transition: transform 0.2s ease;
-        }
-        details[open] summary::after { transform: rotate(90deg); }
-        details > ul { list-style: none; margin: 10px 0 0; padding-left: 0; }
-        details > ul > li {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-            font-size: 0.95em;
-            padding: 8px 10px;
-            margin: 6px 0;
-            background: var(--chip);
-            border: 1px solid var(--border);
-            border-left: 3px solid var(--accent);
-            border-radius: 8px;
-            color: #e2e8f0;
-            /* Make long lines wrap nicely */
-            max-width: 100%;
-            overflow-wrap: anywhere; /* modern wrap for long tokens */
-            word-break: break-word;   /* fallback */
-            white-space: pre-wrap;    /* preserve spaces but allow wrapping */
-        }
+    #delete-logs-button,
+    #refresh-button {
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.15s ease;
+    }
+    #delete-logs-button { background: var(--danger); }
+    #delete-logs-button:hover { filter: brightness(1.08); }
+    #refresh-button { background: #0ea5e9; }
+    #refresh-button:hover { filter: brightness(1.08); }
 
-        /* Empty state styling for no data */
-        .empty-state {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 16px 20px;
-            margin: 24px auto;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--muted);
-            max-width: 420px;
-        }
-        .empty-state::before {
-            content: "📭";
-            margin-right: 8px;
-        }
-        /* Inline empty item inside a details section */
-        .empty-inline {
-            display: block;
-            text-align: center;
-            color: var(--muted);
-            background: rgba(255, 255, 255, 0.04);
-            border-left-color: transparent;
-        }
-    </style>
+    .toggle {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 12px 8px 44px;
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .toggle::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      width: 28px;
+      height: 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,0.15);
+    }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      transition: left 0.18s ease;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+    }
+    .toggle.on {
+      background: rgba(139, 92, 246, 0.15);
+      border-color: rgba(139, 92, 246, 0.55);
+    }
+    .toggle.on::after { left: 24px; }
+    .toggle:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    h1 { margin: 10px 0 6px; font-size: 1.9rem; text-align: center; }
+    .subtitle { color: var(--muted); margin: 0 0 16px; text-align: center; }
+
+    /* Search Bar */
+    .searchbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto auto;
+      gap: 8px;
+      margin: 14px 0 4px;
+      align-items: center;
+      background: var(--search-bg);
+      border: 1px solid var(--search-border);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .searchbar input {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--search-border);
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      outline: none;
+    }
+    .searchbar input::placeholder { color: var(--search-placeholder); }
+    .searchbar button {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--search-border);
+      background: var(--search-btn-bg);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .searchbar button:hover { filter: brightness(1.06); }
+
+    /* Help text under search */
+        .search-info {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.35;
+      margin-bottom: 4px;
+    }
+
+    /* List styling */
+    #machine-data { margin-top: 8px; }
+    #machine-data > ul { list-style: none; padding: 0; margin: 0; }
+    #machine-data > ul > li {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      margin: 10px 0;
+    }
+    details { padding: 14px 16px; }
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      outline: none;
+      list-style: none;
+      color: #fff;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: '▸';
+      float: right;
+      color: var(--muted);
+      transition: transform 0.2s ease;
+    }
+    details[open] summary::after { transform: rotate(90deg); }
+
+    details > ul { list-style: none; margin: 10px 0 0; padding-left: 0; }
+    details > ul > li {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95em;
+      padding: 8px 10px;
+      margin: 6px 0;
+      background: var(--chip);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      color: #e2e8f0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .empty-state {
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 16px 20px; margin: 24px auto;
+      border: 1px solid var(--border); border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06); color: var(--muted);
+      max-width: 420px;
+    }
+    .empty-state::before { content: "📭"; margin-right: 8px; }
+
+    .bottom-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo" aria-label="Keylogger">
-            <span class="logo-mark" role="img" aria-label="key">🔑</span>
-            <span class="logo-text">Keylogger</span>
-        </div>
-        <div class="topbar">
-            <a class="back-link" href="http://127.0.0.1:5000">← Back</a>
-            <button id="toggle-button" class="toggle" role="switch" aria-checked="false" type="button">Start</button>
-        </div>
-        <h1></h1>
-        <p class="subtitle">Click a section to view its data</p>
-        <div id="machine-data"></div>
-        <button id="delete-logs-button">Delete Logs</button>
+  <div class="container">
+    <div class="logo" aria-label="Key">
+      <span class="logo-mark" role="img" aria-label="key">🔑</span>
+      <span class="logo-text">Keylogger</span>
     </div>
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const machine_name = params.get("machine_name");
-        console.log(machine_name);
-        document.querySelector("h1").textContent = `Machine: ${machine_name}`;
-        window.onload = () => {
-            document.title = `Machine: ${machine_name}`;
-        };
 
-        const formatInline = (val) => {
-            if (val === null || val === undefined) return String(val);
-            if (typeof val === 'object') {
-                try { return JSON.stringify(val); } catch (e) { return String(val); }
+    <div class="topbar">
+      <a class="back-link" href="http://127.0.0.1:5000">← Back</a>
+      <button id="toggle-button" class="toggle" role="switch" aria-checked="false" type="button">Start</button>
+    </div>
+
+    <h1></h1>
+    <p class="subtitle">Click a section to view its data</p>
+
+      <!-- Search bar -->
+  <div class="searchbar" role="search">
+    <div class="search-info">
+      You can search by <b>time</b>, <b>app</b>, or <b>word</b> — or combine them.
+      Partial matches are supported in every field.
+    </div>
+    <input id="q-time"  placeholder="Time e.g. 2025-09-03_18-49-48" />
+    <input id="q-app"   placeholder="App e.g. Chrome" />
+    <input id="q-word"  placeholder="Word e.g. hello" />
+    <button id="btn-search" type="button">Search</button>
+    <button id="btn-clear"  type="button">Clear</button>
+  </div>
+
+    <div id="machine-data"></div>
+
+    <!-- Bottom actions -->
+    <div class="bottom-actions">
+      <button id="delete-logs-button">Delete Logs</button>
+      <button id="refresh-button" type="button">Refresh</button>
+    </div>
+  </div>
+
+  <script>
+    // ====== Title & machine name ======
+    const params = new URLSearchParams(window.location.search);
+    const machine_name = params.get("machine_name");
+    document.querySelector("h1").textContent = `Machine: ${machine_name || '—'}`;
+    window.onload = () => { document.title = `Machine: ${machine_name || 'Unknown'}`; };
+
+    // ====== State ======
+    const state = {
+      raw: null,
+      filters: { time: "", app: "", word: "" },
+    };
+
+    // ====== Helpers ======
+    const formatInline = (val) => {
+      if (val === null || val === undefined) return String(val);
+      if (typeof val === 'object') {
+        try { return JSON.stringify(val); } catch { return String(val); }
+      }
+      return String(val);
+    };
+
+    const toLower = (s) => (s == null ? "" : String(s).toLowerCase());
+
+    // time matching:
+    // filter supports:
+    //  - "DD/MM/YY"
+    //  - "DD/MM/YY HH"
+    //  - "DD/MM/YY HH:MM"
+    // We simply check that each token of the filter (split by space) is a substring of the time source.
+    function timeMatches(timeSource, filter) {
+      const src = toLower(timeSource);
+      const f = toLower(filter).trim();
+      if (!f) return true;
+      const tokens = f.split(/\s+/); // ["03/04/25"] or ["03/04/25","14"] or ["03/04/25","14:30"]
+      return tokens.every(t => src.includes(t));
+    }
+
+    // generic substring match (case-insensitive)
+    function includesCI(hay, needle) {
+      const h = toLower(hay);
+      const n = toLower(needle).trim();
+      if (!n) return true;
+      return h.includes(n);
+    }
+
+    // ====== Rendering: only sections with actual results ======
+    function renderData(data, filters = state.filters) {
+      const container = document.getElementById("machine-data");
+      container.innerHTML = "";
+
+      if (!data || Object.keys(data).length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "No data";
+        container.appendChild(empty);
+        return;
+      }
+
+      const ul = document.createElement("ul");
+
+      Object.entries(data).forEach(([key, value]) => {
+        const onlyData = (value && typeof value === 'object') ? value.data : undefined;
+
+        const sublist = document.createElement("ul");
+        let added = false;
+
+        if (Array.isArray(onlyData)) {
+          const filtered = onlyData.filter((entry) => {
+            const line = JSON.stringify(entry);
+            const timeSrc = key + " " + (entry?.time ?? "");
+            return timeMatches(timeSrc, filters.time) &&
+                   includesCI(line, filters.app) &&
+                   includesCI(line, filters.word);
+          });
+
+          filtered.forEach((item, idx) => {
+            const subItem = document.createElement("li");
+            subItem.textContent = item && typeof item === 'object'
+              ? Object.entries(item).map(([k,v]) => `${k}: ${formatInline(v)}`).join(", ")
+              : `[${idx}]: ${formatInline(item)}`;
+            sublist.appendChild(subItem);
+            added = true;
+          });
+
+        } else if (onlyData && typeof onlyData === 'object') {
+          Object.entries(onlyData).forEach(([innerKey, innerVal]) => {
+            const lineStr = `${innerKey}: ${formatInline(innerVal)}`;
+            const timeSrc = key + " " + (innerVal?.time ?? "");
+            if (timeMatches(timeSrc, filters.time) &&
+                includesCI(lineStr, filters.app) &&
+                includesCI(lineStr, filters.word)) {
+              const subItem = document.createElement("li");
+              subItem.textContent = lineStr;
+              sublist.appendChild(subItem);
+              added = true;
             }
-            return String(val);
-        };
+          });
 
-        getMachineData = async () => {
-            try {
-                const response = await fetch(`/api/getData/${encodeURIComponent(machine_name)}`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                console.log(data);
-
-                const container = document.getElementById("machine-data");
-                container.innerHTML = "";
-
-                if (!data || Object.keys(data).length === 0) {
-                    const empty = document.createElement("div");
-                    empty.className = "empty-state";
-                    empty.textContent = "No data";
-                    container.appendChild(empty);
-                    return;
-                }
-
-                const ul = document.createElement("ul");
-                Object.entries(data).forEach(([key, value]) => {
-                    const li = document.createElement("li");
-                    const details = document.createElement("details");
-                    const summary = document.createElement("summary");
-                    summary.textContent = key;
-
-                    const sublist = document.createElement("ul");
-
-                    const onlyData = (value && typeof value === 'object') ? value.data : undefined;
-
-                    if (Array.isArray(onlyData)) {
-                        // Array under 'data': show each element inline (index: value) or flatten object elements
-                        onlyData.forEach((item, idx) => {
-                            if (item && typeof item === 'object' && !Array.isArray(item)) {
-                                Object.entries(item).forEach(([innerKey, innerVal]) => {
-                                    const subItem = document.createElement("li");
-                                    subItem.textContent = `${innerKey}: ${formatInline(innerVal)}`;
-                                    sublist.appendChild(subItem);
-                                });
-                            } else {
-                                const subItem = document.createElement("li");
-                                subItem.textContent = `[${idx}]: ${formatInline(item)}`;
-                                sublist.appendChild(subItem);
-                            }
-                        });
-                    } else if (onlyData && typeof onlyData === 'object') {
-                        Object.entries(onlyData).forEach(([innerKey, innerVal]) => {
-                            const subItem = document.createElement("li");
-                            subItem.textContent = `${innerKey}: ${formatInline(innerVal)}`;
-                            sublist.appendChild(subItem);
-                        });
-                    } else if (onlyData !== undefined) {
-                        const subItem = document.createElement("li");
-                        subItem.textContent = formatInline(onlyData);
-                        sublist.appendChild(subItem);
-                    } else {
-                        const subItem = document.createElement("li");
-                        subItem.className = "empty-inline";
-                        subItem.textContent = "No data";
-                        sublist.appendChild(subItem);
-                    }
-
-                    details.appendChild(summary);
-                    details.appendChild(sublist);
-                    li.appendChild(details);
-                    ul.appendChild(li);
-                });
-
-                container.appendChild(ul);
-            } catch (error) {
-                console.error('There was a problem with the fetch operation:', error);
-                const container = document.getElementById("machine-data");
-                container.innerHTML = "";
-                const empty = document.createElement("div");
-                empty.className = "empty-state";
-                empty.textContent = "No data";
-                container.appendChild(empty);
-            }
-        };
-
-        getMachineData();
-
-        // Toggle button logic
-        const toggleBtn = document.getElementById('toggle-button');
-        let isOn = false; // local UI state; synced from server
-
-        const renderToggle = () => {
-            toggleBtn.classList.toggle('on', isOn);
-            toggleBtn.setAttribute('aria-checked', String(isOn));
-            toggleBtn.textContent = isOn ? 'Stop' : 'Start';
-        };
-        renderToggle();
-
-        async function fetchToggle() {
-            try {
-                const res = await fetch(`/api/toggle?machine=${encodeURIComponent(machine_name)}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    isOn = Boolean(data.status);
-                    renderToggle();
-                }
-            } catch (e) {
-                console.warn('Failed to fetch toggle state', e);
-            }
+        } else if (onlyData !== undefined) {
+          const line = formatInline(onlyData);
+          const timeSrc = key; // no per-entry time
+          if (timeMatches(timeSrc, filters.time) &&
+              includesCI(line, filters.app) &&
+              includesCI(line, filters.word)) {
+            const subItem = document.createElement("li");
+            subItem.textContent = line;
+            sublist.appendChild(subItem);
+            added = true;
+          }
         }
 
-        // initialize toggle state from server
-        fetchToggle();
+        if (added) {
+          const li = document.createElement("li");
+          const details = document.createElement("details");
+          const summary = document.createElement("summary");
+          summary.textContent = key;
+          details.appendChild(summary);
+          details.appendChild(sublist);
+          li.appendChild(details);
+          ul.appendChild(li);
+        }
+      });
 
-        toggleBtn.addEventListener('click', async () => {
-            // optimistic update
-            const prev = isOn;
-            isOn = !isOn;
-            renderToggle();
-            toggleBtn.disabled = true;
-            try {
-                const response = await fetch('/api/toggle', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ machine: machine_name, status: isOn })
-                });
-                if (!response.ok) throw new Error('Bad response');
-                const result = await response.json().catch(() => ({}));
-                console.log('Toggle response:', result);
-                // trust server echo to correct local state if needed
-                if (typeof result.status === 'boolean') {
-                    isOn = result.status;
-                    renderToggle();
-                }
-            } catch (err) {
-                console.error('There was a problem with the toggle operation:', err);
-                // revert UI if server call fails
-                isOn = prev;
-                renderToggle();
-                // optional: show a toast or inline error here
-                alert('Could not update toggle on the server.');
-            } finally {
-                toggleBtn.disabled = false;
-            }
-        });
+      if (ul.children.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "No results for current filters";
+        container.appendChild(empty);
+      } else {
+        container.appendChild(ul);
+      }
+    }
 
-        // Delete logs button logic
-        const deleteLogsBtn = document.getElementById('delete-logs-button');
-        deleteLogsBtn.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to delete all logs for this machine?')) {
-                try {
-                    const response = await fetch(`/api/deleteLogs/${encodeURIComponent(machine_name)}`, {
-                        method: 'DELETE'
-                    });
-                    if (response.ok) {
-                        alert('Logs deleted successfully.');
-                        // Optionally, refresh the data view
-                        getMachineData();
-                    } else {
-                        throw new Error('Failed to delete logs');
-                    }
-                } catch (error) {
-                    console.error('Error deleting logs:', error);
-                    alert('Could not delete logs.');
-                }
-            }
+    // ====== Fetch ======
+    async function getMachineData() {
+      try {
+        const response = await fetch(`/api/getData/${encodeURIComponent(machine_name)}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        state.raw = data;
+        renderData(state.raw, state.filters);
+      } catch (error) {
+        console.error(error);
+        const container = document.getElementById("machine-data");
+        container.innerHTML = "";
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "No data";
+        container.appendChild(empty);
+      }
+    }
+
+    getMachineData();
+
+    // ====== Toggle logic (unchanged) ======
+    const toggleBtn = document.getElementById('toggle-button');
+    let isOn = false;
+
+    const renderToggle = () => {
+      toggleBtn.classList.toggle('on', isOn);
+      toggleBtn.setAttribute('aria-checked', String(isOn));
+      toggleBtn.textContent = isOn ? 'Stop' : 'Start';
+    };
+    renderToggle();
+
+    async function fetchToggle() {
+      try {
+        const res = await fetch(`/api/toggle?machine=${encodeURIComponent(machine_name)}`);
+        if (res.ok) {
+          const data = await res.json();
+          isOn = Boolean(data.status);
+          renderToggle();
+        }
+      } catch (e) {
+        console.warn('Failed to fetch toggle state', e);
+      }
+    }
+    fetchToggle();
+
+    toggleBtn.addEventListener('click', async () => {
+      const prev = isOn;
+      isOn = !isOn;
+      renderToggle();
+      toggleBtn.disabled = true;
+      try {
+        const response = await fetch('/api/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ machine: machine_name, status: isOn })
         });
-    </script>
+        if (!response.ok) throw new Error('Bad response');
+        const result = await response.json().catch(() => ({}));
+        if (typeof result.status === 'boolean') {
+          isOn = result.status;
+          renderToggle();
+        }
+      } catch (err) {
+        console.error('There was a problem with the toggle operation:', err);
+        isOn = prev;
+        renderToggle();
+        alert('Could not update toggle on the server.');
+      } finally {
+        toggleBtn.disabled = false;
+      }
+    });
+
+    // ====== Bottom actions ======
+    document.getElementById('refresh-button').addEventListener('click', getMachineData);
+
+    const deleteLogsBtn = document.getElementById('delete-logs-button');
+    deleteLogsBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to delete all logs for this machine?')) {
+        try {
+          const response = await fetch(`/api/deleteLogs/${encodeURIComponent(machine_name)}`, { method: 'DELETE' });
+          if (response.ok) {
+            alert('Logs deleted successfully.');
+            getMachineData();
+          } else {
+            throw new Error('Failed to delete logs');
+          }
+        } catch (error) {
+          console.error('Error deleting logs:', error);
+          alert('Could not delete logs.');
+        }
+      }
+    });
+
+    // ====== Client-side search ======
+    const qTime  = document.getElementById('q-time');
+    const qApp   = document.getElementById('q-app');
+    const qWord  = document.getElementById('q-word');
+    const btnSearch = document.getElementById('btn-search');
+    const btnClear  = document.getElementById('btn-clear');
+
+    function applyFiltersFromInputs() {
+      state.filters.time = qTime.value.trim();  // supports "DD/MM/YY", "DD/MM/YY HH", "DD/MM/YY HH:MM"
+      state.filters.app  = qApp.value.trim();
+      state.filters.word = qWord.value.trim();
+      if (state.raw) renderData(state.raw, state.filters);
+    }
+
+    function debounce(fn, ms=250) {
+      let t;
+      return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    }
+    const debouncedApply = debounce(applyFiltersFromInputs, 250);
+
+    qTime.addEventListener('input', debouncedApply);
+    qApp .addEventListener('input', debouncedApply);
+    qWord.addEventListener('input', debouncedApply);
+
+    btnSearch.addEventListener('click', applyFiltersFromInputs);
+    btnClear.addEventListener('click', () => {
+      qTime.value = ""; qApp.value  = ""; qWord.value = "";
+      applyFiltersFromInputs();
+    });
+    [qTime, qApp, qWord].forEach(inp => {
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') applyFiltersFromInputs();
+      });
+    });
+  </script>
 </body>
 </html>
