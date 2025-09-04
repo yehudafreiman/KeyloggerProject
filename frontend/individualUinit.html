@@ -319,18 +319,10 @@
 
     const toLower = (s) => (s == null ? "" : String(s).toLowerCase());
 
-    function timeMatches(timeSource, filter) {
-      const canonicalize = (s) => {
-        if (!s) return "";
-        let x = String(s).toLowerCase().trim();
-        x = x.replace(/[\/.]/g, '-');
-        x = x.replace(/[ t]/g, '_');
-        x = x.replace(/:(?=\d{2}(\D|$))/g, '-');
-        return x;
-      };
-      const src = canonicalize(timeSource);
-      const f = canonicalize(filter);
-      if (!f) return true;
+      function timeMatches(timeSource, filter) {
+      if (!filter) return true;
+      const src = String(timeSource).trim();
+      const f   = String(filter).trim();
       return src.includes(f);
     }
 
