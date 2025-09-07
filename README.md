@@ -1,72 +1,65 @@
-סקירת מערכת – Keylogger Management System
+מבנה הפרויקט ומבנה הקבצים
 
-מבוא
-המערכת מספקת פתרון מלא לניטור, איסוף וניהול לוגים של הקלדות (Keylogs) ממספר מחשבים מרוחקים. המערכת מורכבת משלושה חלקים עיקריים:
-	1.	סוכן מקומי (Keylogger Agent – keylogger.py) רץ על מחשב הקצה, אוסף את ההקלדות ושולח אותן בצורה מאובטחת לשרת.
-	2.	שרת מרכזי (Flask Backend – app.py) מנהל את התקשורת עם הסוכנים, שומר את הלוגים ומספק ממשק API לניהול משתמשים ולניהול מכונות.
-	3.	ממשק משתמש (Frontend – HTML) מספק ממשק גרפי נוח הכולל התחברות, בחירת מכונה, הצגת נתוני לוגים, חיפוש מתקדם וביצוע פעולות כמו מחיקה או רענון.
+keylogger.py (צד ה-Client):
 
-רכיבי המערכת
+תפקיד עיקרי: מאזין ללחיצות מקלדת באמצעות ספריית pynput, מאגד תווים למילים (מתעלם מלחיצות מיוחדות חוץ מ-space ו-backspace), משייך לאפליקציה הפעילה ולזמן, ומאחסן בלוגים.
+שליחה לשרת: כל שנייה, שולח את הלוגים המוצפנים לשרת דרך POST request (לכתובת /api/upload). משתמש ב-Fernet להצפנה.
+ניהול מצב: יש polling כל 2 שניות לשרת (לכתובת /api/toggle) כדי לבדוק אם להפעיל/לכבות את ה-keylogger.
+ריצה: רץ כתהליך רקע, ניתן להפסיק עם Ctrl+C.
 
-הסוכן (keylogger.py)
-	•	מנטר לחיצות מקשים בזמן אמת באמצעות הספרייה pynput.
-	•	שומר את המידע בפורמט JSON מקומי.
-	•	שולח את הלוגים לשרת בפרקי זמן קבועים כשהם מוצפנים בעזרת cryptography.
 
-שורות רדומות עבור Windows
-בקובץ קיימות שורות המוגדרות כהערות (comments):
+app.py (צד ה-Server):
 
-בייבוא ספריות:
+תפקיד עיקרי: שרת Flask שמארח API וממשק web. מקבל נתונים מוצפנים, מפענח ומאחסן אותם כקבצי JSON בתיקיות נפרדות לכל מכונה (ב-data וב-decrypted_data).
+API endpoints:
 
-import win32gui
+/api/upload: קליטת לוגים מוצפנים.
+/api/toggle: שליטה במצב (GET/POST) לכל מכונה.
+/api/getData/<machine>: החזרת לוגים למכונה ספציפית.
+/api/getTargetMachinesList: רשימת מכונות זמינות.
+/api/deleteLogs/<machine>: מחיקת לוגים.
+ניהול משתמשים: /api/addUser, /api/deleteUser, /api/validateUser (מאחסן משתמשים כקבצי JSON).
 
-במחלקת KeyLoggerService, מתודת get_active_application():
 
-if platform.system() == "Windows":
-hwnd = win32gui.GetForegroundWindow()
-return win32gui.GetWindowText(hwnd) or "Unknown"
+אחסון: משתמש בתיקיות מקומיות (data ו-decrypted_data) לאחסון לוגים מוצפנים ומפוענחים.
 
-שורות אלו מיועדות להרצה בסביבת Windows בלבד.
-ברירת מחדל (לינוקס / מק): השורות נשארות כבויות.
-ב־Windows: יש להסיר את סימן ה־# כדי להפעילן, להרדים את השורות המסומנות עבור מק ולהתקין את החבילה pywin32.
 
-דרישות התקנה לסוכן:
-	•	לינוקס / מק: pip install pynput cryptography requests
-	•	Windows: בנוסף, נדרש pip install pywin32
+קבצי HTML (ממשק ה-Web):
 
-השרת (app.py)
-נבנה באמצעות Flask ומספק ממשק REST API לניהול:
-	•	ניהול משתמשים:
-	•	/api/addUser – הוספת משתמש
-	•	/api/deleteUser – מחיקת משתמש
-	•	/api/validateUser – אימות כניסה
-	•	ניהול מכונות:
-	•	/api/getTargetMachinesList – קבלת רשימת מכונות
-	•	/api/getData/ – הצגת נתוני לוגים למכונה מסוימת
-	•	/api/deleteLogs/ – מחיקת לוגים
-	•	/api/toggle – הפעלה/כיבוי של איסוף לוגים
+log_in.html: דף כניסה עם אימות משתמש (הוספה/מחיקה/אימות).
+WebsiteView.html: רשימת מכונות זמינות, עם כפתור התנתקות.
+individualUinit.html: ממשק למכונה אחת: חיפוש בלוגים (לפי זמן, אפליקציה, מילה), הצגת נתונים, מחיקה ורענון.
 
-דרישות התקנה לשרת:
-pip install flask pynput cryptography
 
-ממשק המשתמש (Frontend)
-	•	log_in.html – מאפשר התחברות, הוספת משתמש ומחיקת משתמש. הכפתורים מעוצבים באופן אחיד לפי צבעי פעולה.
-	•	WebsiteView.html – מציג את רשימת המכונות כלחצנים, כולל כפתור התנתקות.
-	•	individualUinit.html – מציג לוגים של מכונה, כולל אפשרות חיפוש לפי זמן, אפליקציה או מילה, מחיקת לוגים ורענון, וכן מתג להפעלה או עצירה של איסוף הלוגים.
 
-הפעלה
+הפרויקט זורם באופן אינטואיטיבי: client שולח → server מאחסן ומפענח → web ממשק מציג ומנהל. הוא משתמש ב-threading כדי לרוץ במקביל (שליחה, polling, האזנה).
+התייחסות לשורות המתחלפות בין macOS ו-Windows
+בקוד keylogger.py, בפונקציה get_active_application() (שמחזירה את שם האפליקציה הפעילה), יש התאמה לפלטפורמות:
 
-שרת:
+ל-Windows: הקוד מקומנט (מושבת עם #), ומשתמש בספריית win32gui כדי לקבל את חלון החזית (GetForegroundWindow) ולשלוף את שמו. אם תרצה להפעיל, הסר את ה-# משורות 56-59:
+textif platform.system() == "Windows":
+    import win32gui
+    hwnd = win32gui.GetForegroundWindow()
+    return win32gui.GetWindowText(hwnd) or "Unknown"
+זה יעבוד רק ב-Windows, ודורש התקנת win32gui (ראה להלן).
+ל-macOS (Darwin): הקוד פעיל (שורות 60-63), ומשתמש בספריית AppKit (חלק מ-pyObjC) כדי לקבל את האפליקציה הפעילה דרך NSWorkspace.
+textif platform.system() == "Darwin":
+    from AppKit import NSWorkspace
+    active_app = NSWorkspace.sharedWorkspace().activeApplication()
+    return active_app.get("NSApplicationName", "Unknown")
+אם הפלטפורמה אחרת, מחזיר "Unsupported".
 
-pip install flask pynput cryptography
-python app.py
+ההחלפה הזו נובעת מהבדלים במערכות ההפעלה: Windows משתמש ב-API Win32, macOS ב-API Cocoa. הפרויקט מוטה ל-macOS (Windows מקומנט), אז אם אתה רוצה תמיכה מלאה, הפעל את קטע Windows והתקן ספריות מתאימות. ל-Linux אין תמיכה כלל (תצטרך להוסיף, למשל עם xdotool או pyxhook).
 
-ברירת המחדל: http://127.0.0.1:5000
+ספריות נדרשות להתקנה
+לריצה מלאה, התקן:
+bashpip install pynput requests cryptography flask
 
-סוכן:
+עבור macOS, הוסף:
+bashpip install pyobjc
 
-pip install pynput cryptography requests
-python keylogger.py
+עבור Windows (אם מפעילים את קוד ה-win32gui):
+bashpip install pywin32
 
-	•	במק / לינוקס: אין לשנות את הקוד.
-	•	ב־Windows: יש להסיר את סימן ה־# מהשורות הרדומות, להרדים את השורות עבור מק ולהתקין בנוסף את pywin32.
+
+כללי: אין התקנת ספריות נוספות ב-runtime (הקוד לא משתמש ב-pip בתוך עצמו). ודא Python 3.6+ (Fernet דורש זאת). לריצה: הרץ python app.py לשרת, python keylogger.py ל-client.
