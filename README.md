@@ -1,4 +1,4 @@
-ל
+
 
 
 סקירת מערכת – Keylogger Management System
