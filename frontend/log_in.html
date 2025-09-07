@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In · Keylogger</title>
     <style>
-        /* Match the vibrant theme used across the app */
         :root {
             --bg-grad: radial-gradient(1200px 600px at 10% 10%, #7c3aed33 0%, transparent 60%),
                         radial-gradient(1000px 500px at 90% 20%, #06b6d466 0%, transparent 55%),
@@ -15,8 +14,8 @@
             --text: #f8fafc;
             --muted: #cbd5e1;
             --border: rgba(255, 255, 255, 0.22);
-            --accent: #8b5cf6; /* violet */
-            --accent-2: #06b6d4; /* cyan */
+            --accent: #8b5cf6;
+            --accent-2: #06b6d4;
         }
         * { box-sizing: border-box; }
         html, body { min-height: 100%; }
@@ -63,35 +62,54 @@
             background: rgba(255,255,255,0.12);
         }
 
-        .actions { display: flex; gap: 10px; margin-top: 8px; }
+        .actions { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
         .actions .spacer { flex: 1; }
-        .btn {
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-weight: 800;
+
+        .actions button {
+            border-radius: 999px;
+            padding: 14px 16px; /* unify height */
+            min-width: 140px;   /* unify width */
+            min-height: 44px;   /* unify height */
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
-            color: #fff;
-            width: 140px; /* keep consistent with detail page */
+            transition: background 0.2s ease, filter 0.15s ease;
         }
-        .btn:active { transform: translateY(1px); }
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
-        .btn-primary:hover { filter: brightness(1.08); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
-        .btn-secondary { background: rgba(255,255,255,0.08); }
-        .btn-secondary:hover { background: rgba(255,255,255,0.12); }
-        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
-        .btn-danger:hover { filter: brightness(1.08); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
-        .btn-success { background: linear-gradient(135deg, #16a34a, #22c55e); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
-        .btn-success:hover { filter: brightness(1.08); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
+        /* Delete */
+        #deleteUserButton {
+            background: rgba(239, 68, 68, 0.20);
+            color: #fee2e2;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+        }
+        #deleteUserButton:hover {
+            background: rgba(239, 68, 68, 0.35);
+            filter: brightness(1.05);
+        }
+        /* Login */
+        button[type="submit"] {
+            background: rgba(34, 197, 94, 0.20);
+            color: #dcfce7;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+        button[type="submit"]:hover {
+            background: rgba(34, 197, 94, 0.35);
+            filter: brightness(1.05);
+        }
+        /* Add User */
+        #addUserButton {
+            background: rgba(14, 165, 233, 0.20);
+            color: #e0f2fe;
+            border: 1px solid rgba(14, 165, 233, 0.35);
+        }
+        #addUserButton:hover {
+            background: rgba(14, 165, 233, 0.35);
+            filter: brightness(1.05);
+        }
 
         .note { margin-top: 12px; color: var(--muted); font-size: 0.95rem; text-align: center; }
-        /* Inline status messages */
         .msg { margin-top: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid; text-align: center; font-weight: 700; }
         .msg-success { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.55); color: #bbf7d0; }
         .msg-error { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.55); color: #fecaca; }
     </style>
-    
 </head>
 <body>
     <div class="container">
@@ -112,11 +130,11 @@
                 <input type="password" id="userpassword" name="userpassword" autocomplete="current-password" required>
             </div>
             <div class="actions">
-                <button type="button" id="deleteUserButton" class="btn btn-danger">Delete</button>
+                <button type="button" id="deleteUserButton">Delete</button>
                 <div class="spacer"></div>
-                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="submit">Login</button>
                 <div class="spacer"></div>
-                <button type="button" id="addUserButton" class="btn btn-success">Add User</button>
+                <button type="button" id="addUserButton">Add User</button>
             </div>
         </form>
         <br>
@@ -225,7 +243,6 @@
                 showMessage('Error deleting user: network or server error', 'error');
             }
         });
-
     </script>
 </body>
 </html>
