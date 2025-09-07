@@ -1,12 +1,12 @@
-# Keylogger Management System
+Keylogger Management System
 
-# keylogger.py (צד הלקוח)
+=== keylogger.py (צד הלקוח) ===
 מאזין ללחיצות מקלדת באמצעות pynput, מאגד תווים למילים (space/backspace), משייך לאפליקציה הפעילה ולחותמת זמן  
 שומר לוגים מקומיים ושולח אותם מוצפנים לשרת (/api/upload) כל שנייה  
 מבצע polling כל 2 שניות לשרת (/api/toggle) כדי להפעיל או לכבות  
 רץ ברקע וניתן לעצור עם Ctrl+C  
 
-# app.py (צד השרת)
+=== app.py (צד השרת) ===
 שרת Flask שמקבל נתונים מוצפנים, מפענח ושומר כקבצי JSON בתיקיות data ו decrypted_data  
 מספק API:  
  /api/upload              קליטת לוגים מוצפנים  
@@ -17,18 +17,18 @@
  /api/addUser /api/deleteUser /api/validateUser ניהול משתמשים  
 אחסון מתבצע בתיקיות data ו decrypted_data  
 
-# קבצי HTML
+=== קבצי HTML (Frontend) ===
 log_in.html דף כניסה לניהול משתמשים  
 WebsiteView.html רשימת מכונות זמינות וכפתור התנתקות  
 individualUinit.html ממשק למכונה: חיפוש, הצגה, מחיקה ורענון לוגים  
 
-# זרימת עבודה
+=== זרימת עבודה ===
 client שולח לוגים  
 server מקבל ומפענח  
 web מציג ומנהל  
 המערכת רצה במקביל באמצעות threading לשליחה, polling והאזנה  
 
-# תמיכה במערכות הפעלה
+=== תמיכה במערכות הפעלה ===
 בפונקציה get_active_application:  
 
 Windows (מושבת כברירת מחדל, להסיר #)  
@@ -47,20 +47,20 @@ if platform.system() == "Darwin":
 
 בשאר המערכות מוחזר Unsupported  
 
-# ספריות נדרשות
+=== ספריות נדרשות ===
 pip install pynput requests cryptography flask  
 ב macOS יש להוסיף pip install pyobjc  
-ב Windows יש להוסיף pip install pywin32  
+ב windows יש להוסיף pip install pywin32  
 
-# דרישות מערכת
+=== דרישות מערכת ===
 Python 3.6 ומעלה  
 
-# הוראות הרצה
-צד השרת  
+=== הוראות הרצה ===
+צד השרת:  
 python app.py  
 ברירת מחדל http://127.0.0.1:5000  
 
-צד הלקוח  
+צד הלקוח:  
 python keylogger.py  
-ב macOS ו Linux אין צורך בשינויים  
-ב Windows יש להסיר # מהשורות של Windows, להרדים את שורות macOS ולהתקין pywin32  
+ב macOS ו linux אין צורך בשינויים  
+ב windows יש להסיר # מהשורות של windows, להרדים את שורות macOS ולהתקין pywin32  
