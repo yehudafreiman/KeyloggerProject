@@ -6,7 +6,7 @@ from pynput import keyboard
 from pynput.keyboard import Key
 from cryptography.fernet import Fernet
 import platform
-# import win32gui # Windows
+# import win32gui # Windowsttt
 from AppKit import NSWorkspace # macOS
 
 
