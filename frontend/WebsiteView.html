@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Machine Manager</title>
     <style>
-        /* Vibrant, centered, elegant theme (matches detail page) */
         :root {
             --bg-grad: radial-gradient(1200px 600px at 10% 10%, #7c3aed33 0%, transparent 60%),
                         radial-gradient(1000px 500px at 90% 20%, #06b6d466 0%, transparent 55%),
@@ -14,8 +13,8 @@
             --text: #f8fafc;
             --muted: #cbd5e1;
             --border: rgba(255, 255, 255, 0.22);
-            --accent: #8b5cf6; /* violet */
-            --accent-2: #06b6d4; /* cyan */
+            --accent: #8b5cf6;
+            --accent-2: #06b6d4;
         }
         * { box-sizing: border-box; }
         html, body { height: 100%; }
@@ -69,7 +68,6 @@
 
         #feedback-message { margin-top: 14px; font-size: 0.95rem; color: var(--muted); }
 
-        /* Empty state styling for no machines */
         .empty-state {
             display: flex;
             align-items: center;
@@ -87,20 +85,32 @@
             content: "📭";
             margin-right: 8px;
         }
-        /* Button styles to match login page */
-        .btn {
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-weight: 800;
+
+        .pill-btn {
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
+            transition: background 0.2s ease, filter 0.15s ease;
+            border: 1px solid transparent;
             color: #fff;
-            width: 140px;
         }
-        .btn:active { transform: translateY(1px); }
-        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
-        .btn-danger:hover { filter: brightness(1.08); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
+        .pill-danger {
+            background: rgba(239, 68, 68, 0.20);
+            color: #fee2e2;
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+        .pill-danger:hover {
+            background: rgba(239, 68, 68, 0.35);
+            filter: brightness(1.05);
+        }
+
+        /* Unify button sizing across views */
+        .computer-button,
+        .pill-btn {
+            min-width: 140px;
+            min-height: 44px;
+        }
     </style>
 </head>
 <body>
@@ -112,48 +122,30 @@
         </div>
         <h1>Select a Machine</h1>
         <p>Click a machine to open its management view.</p>
-        
+
         <div id="computer-list" class="computer-list">
             </div>
 
         <div id="feedback-message"></div>
         <br>
         <div>
-            <button id="logoutButton" class="btn btn-danger" onclick="window.location.href='http://127.0.0.1:5000'">Log Out</button>
+            <button id="logoutButton" class="pill-btn pill-danger" onclick="window.location.href='http://127.0.0.1:5000'">Log Out</button>
         </div>
     </div>
 
     <script>
-        // API endpoint (relative to current origin)
         const API_URL = '/api/getTargetMachinesList';
-
         const computerListDiv = document.getElementById('computer-list');
         const feedbackMsg = document.getElementById('feedback-message');
 
-        // Fetch machines from server and render buttons
         async function fetchAndRenderMachines() {
             try {
                 feedbackMsg.textContent = 'Loading machines…';
-
-                const response = await fetch(API_URL, {
-                    headers: { 'Accept': 'application/json' }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
-                }
-
+                const response = await fetch(API_URL, { headers: { 'Accept': 'application/json' } });
+                if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                 const data = await response.json();
-
-                // Support multiple response shapes, e.g. ["PC-1","PC-2"] or { machines: [...] }
-                const machines = Array.isArray(data)
-                    ? data
-                    : (data.machines || data.list || data.items || []);
-
-                if (!Array.isArray(machines)) {
-                    throw new Error('Unexpected JSON format from server');
-                }
-
+                const machines = Array.isArray(data) ? data : (data.machines || data.list || data.items || []);
+                if (!Array.isArray(machines)) throw new Error('Unexpected JSON format from server');
                 if (!machines.length) {
                     computerListDiv.innerHTML = '';
                     const empty = document.createElement('div');
@@ -176,11 +168,8 @@
             }
         }
 
-        // Create buttons dynamically
         function renderButtons(machines) {
-            // Clear previous content
             computerListDiv.innerHTML = '';
-
             machines.forEach((computerName) => {
                 const button = document.createElement('button');
                 button.className = 'computer-button';
@@ -189,15 +178,12 @@
                 computerListDiv.appendChild(button);
             });
         }
-        
+
         function goToMachine(name) {
             window.location.href = `/individualUinit.html?machine_name=${encodeURIComponent(name)}`;
         }
 
-        // Load the list when the page loads
         window.addEventListener('DOMContentLoaded', fetchAndRenderMachines);
-
-
     </script>
 
 </body>
