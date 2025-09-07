@@ -1,66 +1,65 @@
-Keylogger Management System
+# **Keylogger Management System**
 
-=== keylogger.py (צד הלקוח) ===
-מאזין ללחיצות מקלדת באמצעות pynput, מאגד תווים למילים (space/backspace), משייך לאפליקציה הפעילה ולחותמת זמן  
-שומר לוגים מקומיים ושולח אותם מוצפנים לשרת (/api/upload) כל שנייה  
-מבצע polling כל 2 שניות לשרת (/api/toggle) כדי להפעיל או לכבות  
-רץ ברקע וניתן לעצור עם Ctrl+C  
+# **keylogger.py (צד ה-Client)**
+- תפקיד עיקרי: מאזין ללחיצות מקלדת באמצעות ספריית pynput, מאגד תווים למילים (מתעלם מלחיצות מיוחדות חוץ מ-space ו-backspace), משייך לאפליקציה הפעילה ולזמן, ומאחסן בלוגים.  
+- שליחה לשרת: כל שנייה שולח את הלוגים המוצפנים לשרת דרך POST לכתובת /api/upload. משתמש ב-Fernet להצפנה.  
+- ניהול מצב: Polling כל 2 שניות לשרת (/api/toggle) כדי לבדוק אם להפעיל/לכבות את ה-keylogger.  
+- ריצה: רץ כתהליך רקע, ניתן להפסיק עם Ctrl+C.  
 
-=== app.py (צד השרת) ===
-שרת Flask שמקבל נתונים מוצפנים, מפענח ושומר כקבצי JSON בתיקיות data ו decrypted_data  
-מספק API:  
- /api/upload              קליטת לוגים מוצפנים  
- /api/toggle              הפעלה או כיבוי לכל מכונה  
- /api/getData/<machine>   החזרת לוגים למכונה ספציפית  
- /api/getTargetMachinesList רשימת מכונות זמינות  
- /api/deleteLogs/<machine> מחיקת לוגים  
- /api/addUser /api/deleteUser /api/validateUser ניהול משתמשים  
-אחסון מתבצע בתיקיות data ו decrypted_data  
+# **app.py (צד ה-Server)**
+- תפקיד עיקרי: שרת Flask שמארח API וממשק web. מקבל נתונים מוצפנים, מפענח ומאחסן אותם כקבצי JSON בתיקיות נפרדות לכל מכונה (data ו-decrypted_data).  
+- API endpoints:  
+  /api/upload – קליטת לוגים מוצפנים  
+  /api/toggle – שליטה במצב (GET/POST) לכל מכונה  
+  /api/getData/<machine> – החזרת לוגים למכונה ספציפית  
+  /api/getTargetMachinesList – רשימת מכונות זמינות  
+  /api/deleteLogs/<machine> – מחיקת לוגים  
+  /api/addUser, /api/deleteUser, /api/validateUser – ניהול משתמשים (מאוחסנים כקובצי JSON)  
+- אחסון: משתמש בתיקיות מקומיות (data, decrypted_data) לאחסון לוגים מוצפנים ומפוענחים.  
 
-=== קבצי HTML (Frontend) ===
-log_in.html דף כניסה לניהול משתמשים  
-WebsiteView.html רשימת מכונות זמינות וכפתור התנתקות  
-individualUinit.html ממשק למכונה: חיפוש, הצגה, מחיקה ורענון לוגים  
+# **קבצי HTML (ממשק ה-Web)**
+- log_in.html – דף כניסה עם אימות משתמש (הוספה/מחיקה/אימות)  
+- WebsiteView.html – מציג את רשימת המכונות כלחצנים, כולל כפתור התנתקות  
+- individualUinit.html – ממשק למכונה אחת: חיפוש בלוגים (לפי זמן, אפליקציה, מילה), הצגת נתונים, מחיקה ורענון  
 
-=== זרימת עבודה ===
-client שולח לוגים  
-server מקבל ומפענח  
-web מציג ומנהל  
-המערכת רצה במקביל באמצעות threading לשליחה, polling והאזנה  
+# **זרימת העבודה**
+1. Client שולח לוגים  
+2. Server מקבל ומפענח  
+3. Web UI מציג ומנהל  
+המערכת משתמשת ב-threading כדי להריץ במקביל שליחה, polling והאזנה למקלדת.  
 
-=== תמיכה במערכות הפעלה ===
-בפונקציה get_active_application:  
+# **התאמה בין macOS ל-Windows**
+ב־keylogger.py, בפונקציה get_active_application():  
+- Windows (מושבת כברירת מחדל):  
+  if platform.system() == "Windows":  
+      import win32gui  
+      hwnd = win32gui.GetForegroundWindow()  
+      return win32gui.GetWindowText(hwnd) or "Unknown"  
+  דורש התקנת pywin32  
+- macOS (Darwin) (פעיל כברירת מחדל):  
+  if platform.system() == "Darwin":  
+      from AppKit import NSWorkspace  
+      active_app = NSWorkspace.sharedWorkspace().activeApplication()  
+      return active_app.get("NSApplicationName", "Unknown")  
+  משתמש ב-AppKit (חלק מ-pyobjc)  
+- אחר: מחזיר "Unsupported"  
 
-Windows (מושבת כברירת מחדל, להסיר #)  
-if platform.system() == "Windows":  
-    import win32gui  
-    hwnd = win32gui.GetForegroundWindow()  
-    return win32gui.GetWindowText(hwnd) or "Unknown"  
-נדרש pip install pywin32  
-
-macOS (פעיל כברירת מחדל)  
-if platform.system() == "Darwin":  
-    from AppKit import NSWorkspace  
-    active_app = NSWorkspace.sharedWorkspace().activeApplication()  
-    return active_app.get("NSApplicationName", "Unknown")  
-נדרש pip install pyobjc  
-
-בשאר המערכות מוחזר Unsupported  
-
-=== ספריות נדרשות ===
+# **ספריות נדרשות להתקנה**
+כללי:  
 pip install pynput requests cryptography flask  
-ב macOS יש להוסיף pip install pyobjc  
-ב windows יש להוסיף pip install pywin32  
+macOS:  
+pip install pyobjc  
+Windows (אם מפעילים את הקוד עבור Win32):  
+pip install pywin32  
 
-=== דרישות מערכת ===
-Python 3.6 ומעלה  
+# **דרישות מערכת**
+- Python 3.6 ומעלה (דרוש עבור Fernet)  
 
-=== הוראות הרצה ===
+# **הוראות הרצה**
 צד השרת:  
 python app.py  
-ברירת מחדל http://127.0.0.1:5000  
-
+ברירת מחדל: http://127.0.0.1:5000  
 צד הלקוח:  
 python keylogger.py  
-ב macOS ו linux אין צורך בשינויים  
-ב windows יש להסיר # מהשורות של windows, להרדים את שורות macOS ולהתקין pywin32  
+- macOS / Linux: אין לשנות את הקוד  
+- Windows: יש להסיר # מהשורות המיועדות ל-Windows, להרדים את שורות macOS, ולהתקין בנוסף את pywin32  
