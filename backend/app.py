@@ -125,7 +125,7 @@ def upload_api():
     os.makedirs(machine_path, exist_ok=True)
     os.makedirs(decrypted_machine_path, exist_ok=True)
 
-    file_name = f"log_{time.strftime('%Y-%m-%d_%H:%M:%S')}.enc"
+    file_name = f"log_{time.strftime('%Y-%m-%d_%H-%M-%S')}.enc"
     file_path = os.path.join(machine_path, file_name)
 
     with open(file_path, "wb") as f:
@@ -136,7 +136,7 @@ def upload_api():
         decrypted_json = json.loads(decrypted_data)
         data_list.append(decrypted_json)
 
-        decrypted_file_name = f"log_{time.strftime('%Y-%m-%d_%H:%M:%S')}.json"
+        decrypted_file_name = f"log_{time.strftime('%Y-%m-%d_%H-%M-%S')}.json"
         decrypted_file_path = os.path.join(decrypted_machine_path, decrypted_file_name)
         with open(decrypted_file_path, "w", encoding="utf-8") as f:
             json.dump(decrypted_json, f, indent=2, ensure_ascii=False)
@@ -183,6 +183,9 @@ def delete_logs(machine):
         os.remove(file_path)
 
     return jsonify({"status": "ok"}), 200
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True) 
