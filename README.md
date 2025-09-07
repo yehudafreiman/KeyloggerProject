@@ -26,11 +26,11 @@
 בקובץ קיימות שורות המוגדרות כהערות (comments):
 
 בייבוא ספריות:
-# import win32gui
+import win32gui
 במחלקת KeyLoggerService מתודת get_active_application(): 
-# if platform.system() == "Windows":
-# hwnd = win32gui.GetForegroundWindow()
-# return win32gui.GetWindowText(hwnd) or "Unknown"
+if platform.system() == "Windows":
+hwnd = win32gui.GetForegroundWindow()
+return win32gui.GetWindowText(hwnd) or "Unknown"
 
 שורות אלו מיועדות להרצה בסביבת Windows בלבד.
 ברירת מחדל (לינוקס / מק): השורות נשארות כבויות.
