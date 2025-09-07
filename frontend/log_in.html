@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In · Keylogger</title>
+    <style>
+        /* Match the vibrant theme used across the app */
+        :root {
+            --bg-grad: radial-gradient(1200px 600px at 10% 10%, #7c3aed33 0%, transparent 60%),
+                        radial-gradient(1000px 500px at 90% 20%, #06b6d466 0%, transparent 55%),
+                        linear-gradient(160deg, #0f172a 0%, #111827 100%);
+            --card: rgba(255, 255, 255, 0.14);
+            --card-solid: #ffffff;
+            --text: #f8fafc;
+            --muted: #cbd5e1;
+            --border: rgba(255, 255, 255, 0.22);
+            --accent: #8b5cf6; /* violet */
+            --accent-2: #06b6d4; /* cyan */
+        }
+        * { box-sizing: border-box; }
+        html, body { min-height: 100%; }
+        body {
+            margin: 0;
+            font-family: 'Heebo', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+            background: var(--bg-grad);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .container {
+            width: min(560px, 92vw);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(10px);
+        }
+        .logo { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
+        .logo .logo-mark { font-size: 20px; }
+        .logo .logo-text { font-weight: 800; letter-spacing: 0.3px; color: #fff; }
+        h1 { margin: 10px 0 6px; font-size: 1.9rem; text-align: center; }
+        .subtitle { color: var(--muted); margin: 0 0 16px; text-align: center; }
+
+        form { margin-top: 8px; }
+        .field { margin: 10px 0 12px; }
+        label { display: block; margin-bottom: 6px; color: #e8ecf3; font-weight: 700; }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: rgba(139, 92, 246, 0.55);
+            background: rgba(255,255,255,0.12);
+        }
+
+        .actions { display: flex; gap: 10px; margin-top: 8px; }
+        .actions .spacer { flex: 1; }
+        .btn {
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
+            color: #fff;
+            width: 140px; /* keep consistent with detail page */
+        }
+        .btn:active { transform: translateY(1px); }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
+        .btn-primary:hover { filter: brightness(1.08); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
+        .btn-secondary { background: rgba(255,255,255,0.08); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
+        .btn-danger:hover { filter: brightness(1.08); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
+        .btn-success { background: linear-gradient(135deg, #16a34a, #22c55e); box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
+        .btn-success:hover { filter: brightness(1.08); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
+
+        .note { margin-top: 12px; color: var(--muted); font-size: 0.95rem; text-align: center; }
+        /* Inline status messages */
+        .msg { margin-top: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid; text-align: center; font-weight: 700; }
+        .msg-success { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.55); color: #bbf7d0; }
+        .msg-error { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.55); color: #fecaca; }
+    </style>
+    
+</head>
+<body>
+    <div class="container">
+        <div class="logo" aria-label="Keylogger">
+            <span class="logo-mark" role="img" aria-label="key">🔑</span>
+            <span class="logo-text">Keylogger</span>
+        </div>
+        <h1>Sign In</h1>
+        <p class="subtitle">Enter credentials or add a new user</p>
+
+        <form id="loginForm">
+            <div class="field">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" autocomplete="username" required>
+            </div>
+            <div class="field">
+                <label for="userpassword">Password</label>
+                <input type="password" id="userpassword" name="userpassword" autocomplete="current-password" required>
+            </div>
+            <div class="actions">
+                <button type="button" id="deleteUserButton" class="btn btn-danger">Delete</button>
+                <div class="spacer"></div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="spacer"></div>
+                <button type="button" id="addUserButton" class="btn btn-success">Add User</button>
+            </div>
+        </form>
+        <br>
+        <div class="note">New here? Enter a username and password, then click “Add User”.</div>
+        <div class="note">Want to Delete? Enter a username and password, then click “Delete”.</div>
+        <div id="action-message" class="msg" style="display:none"></div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const addUserBtn = document.getElementById('addUserButton');
+        const deleteUserBtn = document.getElementById('deleteUserButton');
+        const actionMsg = document.getElementById('action-message');
+
+        let msgTimer;
+        function showMessage(text, type = 'success') {
+            actionMsg.textContent = text;
+            actionMsg.className = `msg msg-${type}`;
+            actionMsg.style.display = '';
+            clearTimeout(msgTimer);
+            msgTimer = setTimeout(() => { actionMsg.style.display = 'none'; }, 3500);
+        }
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const userpassword = document.getElementById('userpassword').value;
+
+            if (!username || !userpassword) {
+                alert('Please enter both username and password.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/validateUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, userpassword })
+                });
+                const data = await response.json();
+                if (data.status === 'ok') {
+                    window.location.href = '/WebsiteView.html';
+                } else {
+                    showMessage('Login failed: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (err) {
+                console.error('Login error', err);
+                showMessage('Login failed: network or server error', 'error');
+            }
+        });
+
+        addUserBtn.addEventListener('click', async () => {
+            const username = document.getElementById('username').value.trim();
+            const userpassword = document.getElementById('userpassword').value;
+
+            if (!username || !userpassword) {
+                alert('Please enter a username and password first.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/addUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, userpassword })
+                });
+                const data = await response.json();
+                if (data.status === 'user added') {
+                    showMessage('User added successfully', 'success');
+                    document.getElementById('username').value = '';
+                    document.getElementById('userpassword').value = '';
+                } else {
+                    showMessage('Error adding user: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (err) {
+                console.error('Add user error', err);
+                showMessage('Error adding user: network or server error', 'error');
+            }
+        });
+
+        deleteUserBtn.addEventListener('click', async () => {
+            const username = document.getElementById('username').value.trim();
+            const userpassword = document.getElementById('userpassword').value;
+
+            if (!username || !userpassword) {
+                alert('Please enter a username and password first.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/deleteUser', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ "username": username, "userpassword": userpassword })
+                });
+                const data = await response.json();
+                if (data.status === 'user deleted') {
+                    showMessage('User deleted successfully', 'success');
+                    document.getElementById('username').value = '';
+                    document.getElementById('userpassword').value = '';
+                } else {
+                    showMessage('Error deleting user: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (err) {
+                console.error('Delete user error', err);
+                showMessage('Error deleting user: network or server error', 'error');
+            }
+        });
+
+    </script>
+</body>
+</html>

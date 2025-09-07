@@ -14,6 +14,7 @@ fernet = Fernet(key)
 
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
 DECRYPTED_FOLDER = os.path.join(os.path.dirname(__file__), "decrypted_data")
+USERS_DATA = os.path.join(os.path.dirname(__file__), "users_data")
 data_list = []
 # In-memory desired toggle state per machine
 DESIRED_TOGGLE = {}
@@ -21,6 +22,10 @@ DESIRED_TOGGLE = {}
 
 @app.route("/")
 def home():
+    return render_template("log_in.html")
+
+@app.route("/WebsiteView.html")
+def website_view():
     return render_template("WebsiteView.html")
 
 @app.route("/individualUinit.html")
@@ -28,6 +33,62 @@ def individual_unit():
     machine_name = request.args.get("machine_name")
     return render_template("individualUinit.html", machine_name=machine_name)
 
+@app.route("/api/addUser", methods=["POST"])
+def add_user():
+    data = request.get_json(silent=True) or {}
+    username = data.get("username")
+    userpassword = data.get("userpassword")
+    
+    os.makedirs(USERS_DATA, exist_ok=True)
+    
+    if not username or not userpassword:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    user_data = {
+        "username": username,
+        "userpassword": userpassword
+    }
+    user_file = os.path.join(USERS_DATA, f"{username}.json")
+    with open(user_file, "w", encoding="utf-8") as f:
+        json.dump(user_data, f, indent=2, ensure_ascii=False)
+
+    return jsonify({"status": "user added"}), 200
+
+
+@app.route("/api/deleteUser", methods=["DELETE"])
+def delete_user():
+    data = request.get_json(silent=True) or {}
+    username = data.get("username")
+    userpassword = data.get("userpassword")
+        
+    if not username or not userpassword:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    user_file = os.path.join(USERS_DATA, f"{username}.json")
+    if not os.path.exists(user_file):
+        return jsonify({"error": "User not found"}), 404
+    
+    os.remove(user_file)
+    return jsonify({"status": "user deleted"}), 200
+
+
+@app.route("/api/validateUser", methods=["POST"])
+def validate_user():
+    data = request.get_json(silent=True) or {}
+    username = data.get("username")
+    userpassword = data.get("userpassword")
+      
+    if not username or not userpassword:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    for file_name in os.listdir(USERS_DATA):
+        if file_name == f"{username}.json":
+            file_path = os.path.join(USERS_DATA, file_name)
+            with open(file_path, "r") as file:
+                data = json.load(file)
+                if data.get("userpassword") == userpassword:
+                    return jsonify({"status": "ok"}), 200
+    return jsonify({"error": "Invalid username or password"}), 401
 
 @app.route("/api/getTargetMachinesList", methods=["GET"])
 def get_target_machines_list():
