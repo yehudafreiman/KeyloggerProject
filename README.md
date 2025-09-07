@@ -1,72 +1,65 @@
-סקירת מערכת – Keylogger Management System
+# **Keylogger Management System**
 
-מבוא
-המערכת מספקת פתרון מלא לניטור, איסוף וניהול לוגים של הקלדות (Keylogs) ממספר מחשבים מרוחקים. המערכת מורכבת משלושה חלקים עיקריים:
-	1.	סוכן מקומי (Keylogger Agent – keylogger.py) רץ על מחשב הקצה, אוסף את ההקלדות ושולח אותן בצורה מאובטחת לשרת.
-	2.	שרת מרכזי (Flask Backend – app.py) מנהל את התקשורת עם הסוכנים, שומר את הלוגים ומספק ממשק API לניהול משתמשים ולניהול מכונות.
-	3.	ממשק משתמש (Frontend – HTML) מספק ממשק גרפי נוח הכולל התחברות, בחירת מכונה, הצגת נתוני לוגים, חיפוש מתקדם וביצוע פעולות כמו מחיקה או רענון.
+# **קובץ keylogger.py (צד ה-Agent)**
+- תפקיד עיקרי: מאזין ללחיצות מקלדת באמצעות ספריית pynput, מאגד תווים למילים (מתעלם מלחיצות מיוחדות חוץ מ-space ו-backspace), משייך לאפליקציה הפעילה ולזמן, ומאחסן בלוגים.  
+- שליחה לשרת: כל שנייה שולח את הלוגים המוצפנים לשרת דרך POST לכתובת /api/upload. משתמש ב-Fernet להצפנה.  
+- ניהול מצב: Polling כל 2 שניות לשרת (/api/toggle) כדי לבדוק אם להפעיל/לכבות את ה-keylogger.  
+- ריצה: רץ כתהליך רקע, ניתן להפסיק עם Ctrl+C.  
 
-רכיבי המערכת
+# **קובץ app.py (צד ה-Server)**
+- תפקיד עיקרי: שרת Flask שמארח API וממשק web. מקבל נתונים מוצפנים, מפענח ומאחסן אותם כקבצי JSON בתיקיות נפרדות לכל מכונה (data ו-decrypted_data).  
+- API endpoints:  
+  /api/upload – קליטת לוגים מוצפנים  
+  /api/toggle – שליטה במצב (GET/POST) לכל מכונה  
+  /api/getData/<machine> – החזרת לוגים למכונה ספציפית  
+  /api/getTargetMachinesList – רשימת מכונות זמינות  
+  /api/deleteLogs/<machine> – מחיקת לוגים  
+  /api/addUser, /api/deleteUser, /api/validateUser – ניהול משתמשים (מאוחסנים כקובצי JSON)  
+- אחסון: משתמש בתיקיות מקומיות (data, decrypted_data) לאחסון לוגים מוצפנים ומפוענחים.  
 
-הסוכן (keylogger.py)
-	•	מנטר לחיצות מקשים בזמן אמת באמצעות הספרייה pynput.
-	•	שומר את המידע בפורמט JSON מקומי.
-	•	שולח את הלוגים לשרת בפרקי זמן קבועים כשהם מוצפנים בעזרת cryptography.
+# **קבצי HTML (צד ה-Client)**
+- log_in.html – דף כניסה עם אימות משתמש (הוספה/מחיקה/אימות)  
+- WebsiteView.html – מציג את רשימת המכונות כלחצנים, כולל כפתור התנתקות  
+- individualUinit.html – ממשק למכונה אחת: חיפוש בלוגים (לפי זמן, אפליקציה, מילה), הצגת נתונים, מחיקה ורענון  
 
-שורות רדומות עבור Windows
-בקובץ קיימות שורות המוגדרות כהערות (comments):
+# **זרימת העבודה**
+1. Agent שולח לוגים  
+2. Server מקבל ומפענח  
+3. Client מציג ומנהל  
+- המערכת משתמשת ב-threading כדי להריץ במקביל שליחה, polling והאזנה למקלדת.  
 
-בייבוא ספריות:
+# **התאמה בין macOS ל-Windows**
+ב־keylogger.py, בפונקציה get_active_application():  
+- Windows (מושבת כברירת מחדל):  
+  if platform.system() == "Windows":  
+      import win32gui  
+      hwnd = win32gui.GetForegroundWindow()  
+      return win32gui.GetWindowText(hwnd) or "Unknown"  
+  דורש התקנת pywin32  
+- macOS (Darwin) (פעיל כברירת מחדל):  
+  if platform.system() == "Darwin":  
+      from AppKit import NSWorkspace  
+      active_app = NSWorkspace.sharedWorkspace().activeApplication()  
+      return active_app.get("NSApplicationName", "Unknown")  
+  משתמש ב-AppKit (חלק מ-pyobjc)  
+- אחר: מחזיר "Unsupported"  
 
-import win32gui
+# **ספריות נדרשות להתקנה**
+כללי:  
+pip install pynput requests cryptography flask  
+macOS:  
+pip install pyobjc  
+Windows (אם מפעילים את הקוד עבור Win32):  
+pip install pywin32  
 
-במחלקת KeyLoggerService, מתודת get_active_application():
+# **דרישות מערכת**
+- Python 3.6 ומעלה (דרוש עבור Fernet)  
 
-if platform.system() == "Windows":
-hwnd = win32gui.GetForegroundWindow()
-return win32gui.GetWindowText(hwnd) or "Unknown"
-
-שורות אלו מיועדות להרצה בסביבת Windows בלבד.
-ברירת מחדל (לינוקס / מק): השורות נשארות כבויות.
-ב־Windows: יש להסיר את סימן ה־# כדי להפעילן, להרדים את השורות המסומנות עבור מק ולהתקין את החבילה pywin32.
-
-דרישות התקנה לסוכן:
-	•	לינוקס / מק: pip install pynput cryptography requests
-	•	Windows: בנוסף, נדרש pip install pywin32
-
-השרת (app.py)
-נבנה באמצעות Flask ומספק ממשק REST API לניהול:
-	•	ניהול משתמשים:
-	•	/api/addUser – הוספת משתמש
-	•	/api/deleteUser – מחיקת משתמש
-	•	/api/validateUser – אימות כניסה
-	•	ניהול מכונות:
-	•	/api/getTargetMachinesList – קבלת רשימת מכונות
-	•	/api/getData/ – הצגת נתוני לוגים למכונה מסוימת
-	•	/api/deleteLogs/ – מחיקת לוגים
-	•	/api/toggle – הפעלה/כיבוי של איסוף לוגים
-
-דרישות התקנה לשרת:
-pip install flask pynput cryptography
-
-ממשק המשתמש (Frontend)
-	•	log_in.html – מאפשר התחברות, הוספת משתמש ומחיקת משתמש. הכפתורים מעוצבים באופן אחיד לפי צבעי פעולה.
-	•	WebsiteView.html – מציג את רשימת המכונות כלחצנים, כולל כפתור התנתקות.
-	•	individualUinit.html – מציג לוגים של מכונה, כולל אפשרות חיפוש לפי זמן, אפליקציה או מילה, מחיקת לוגים ורענון, וכן מתג להפעלה או עצירה של איסוף הלוגים.
-
-הפעלה
-
-שרת:
-
-pip install flask pynput cryptography
-python app.py
-
-ברירת המחדל: http://127.0.0.1:5000
-
-סוכן:
-
-pip install pynput cryptography requests
-python keylogger.py
-
-	•	במק / לינוקס: אין לשנות את הקוד.
-	•	ב־Windows: יש להסיר את סימן ה־# מהשורות הרדומות, להרדים את השורות עבור מק ולהתקין בנוסף את pywin32.
+# **הוראות הרצה**
+צד השרת:  
+python app.py  
+ברירת מחדל: http://127.0.0.1:5000  
+צד הסוכן:  
+python keylogger.py  
+- macOS: אין לשנות את הקוד  
+- Windows: יש להסיר # מהשורות המיועדות ל-Windows, להרדים את שורות macOS, ולהתקין בנוסף את pywin32  
