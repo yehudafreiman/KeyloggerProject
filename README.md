@@ -1,12 +1,12 @@
 # **Keylogger Management System**
 
-# **keylogger.py (צד ה-Agent)**
+# **קובץ keylogger.py (צד ה-Agent)**
 - תפקיד עיקרי: מאזין ללחיצות מקלדת באמצעות ספריית pynput, מאגד תווים למילים (מתעלם מלחיצות מיוחדות חוץ מ-space ו-backspace), משייך לאפליקציה הפעילה ולזמן, ומאחסן בלוגים.  
 - שליחה לשרת: כל שנייה שולח את הלוגים המוצפנים לשרת דרך POST לכתובת /api/upload. משתמש ב-Fernet להצפנה.  
 - ניהול מצב: Polling כל 2 שניות לשרת (/api/toggle) כדי לבדוק אם להפעיל/לכבות את ה-keylogger.  
 - ריצה: רץ כתהליך רקע, ניתן להפסיק עם Ctrl+C.  
 
-# **app.py (צד ה-Server)**
+# **קובץ app.py (צד ה-Server)**
 - תפקיד עיקרי: שרת Flask שמארח API וממשק web. מקבל נתונים מוצפנים, מפענח ומאחסן אותם כקבצי JSON בתיקיות נפרדות לכל מכונה (data ו-decrypted_data).  
 - API endpoints:  
   /api/upload – קליטת לוגים מוצפנים  
@@ -59,7 +59,7 @@ pip install pywin32
 צד השרת:  
 python app.py  
 ברירת מחדל: http://127.0.0.1:5000  
-צד הלקוח:  
+צד הסוכן:  
 python keylogger.py  
 - macOS: אין לשנות את הקוד  
 - Windows: יש להסיר # מהשורות המיועדות ל-Windows, להרדים את שורות macOS, ולהתקין בנוסף את pywin32  
