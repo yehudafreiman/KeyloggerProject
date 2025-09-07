@@ -18,8 +18,6 @@
       --chip: rgba(255, 255, 255, 0.08);
       --danger: #ef4444;
       --danger-2: #dc2626;
-
-      /* צבע לשורת חיפוש */
       --search-bg: rgba(139, 92, 246, 0.18);
       --search-border: rgba(139, 92, 246, 0.5);
       --search-placeholder: #c4b5fd;
@@ -127,10 +125,9 @@
     h1 { margin: 10px 0 6px; font-size: 1.9rem; text-align: center; }
     .subtitle { color: var(--muted); margin: 0 0 16px; text-align: center; }
 
-    /* Search Bar */
     .searchbar {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto auto;
+      grid-template-columns: 1fr 1fr 1fr auto; /* removed Search button column */
       gap: 8px;
       margin: 14px 0 4px;
       align-items: center;
@@ -159,8 +156,7 @@
     }
     .searchbar button:hover { filter: brightness(1.06); }
 
-    /* Help text search */
-        .search-info {
+    .search-info {
       grid-column: 1 / -1;
       color: var(--muted);
       font-size: 0.92rem;
@@ -168,7 +164,6 @@
       margin-bottom: 4px;
     }
 
-    /* List styling */
     #machine-data { margin-top: 8px; }
     #machine-data > ul { list-style: none; padding: 0; margin: 0; }
     #machine-data > ul > li {
@@ -221,41 +216,40 @@
     .empty-state::before { content: "📭"; margin-right: 8px; }
 
     .bottom-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
-       #delete-logs-button {
-  background: rgba(239, 68, 68, 0.20);
-  color: #fee2e2;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  border-radius: 999px;
-  padding: 10px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease, filter 0.15s ease;
-}
-#delete-logs-button:hover {
-  background: rgba(239, 68, 68, 0.35);
-  filter: brightness(1.05);
-}
-
-#refresh-button {
-  background: rgba(34, 197, 94, 0.20);
-  color: #dcfce7;
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  border-radius: 999px;
-  padding: 10px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease, filter 0.15s ease;
-}
-#refresh-button:hover {
-  background: rgba(34, 197, 94, 0.35);
-  filter: brightness(1.05);
-}
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    #delete-logs-button {
+      background: rgba(239, 68, 68, 0.20);
+      color: #fee2e2;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, filter 0.15s ease;
+    }
+    #delete-logs-button:hover {
+      background: rgba(239, 68, 68, 0.35);
+      filter: brightness(1.05);
+    }
+    #refresh-button {
+      background: rgba(34, 197, 94, 0.20);
+      color: #dcfce7;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, filter 0.15s ease;
+    }
+    #refresh-button:hover {
+      background: rgba(34, 197, 94, 0.35);
+      filter: brightness(1.05);
+    }
   </style>
 </head>
 <body>
@@ -273,22 +267,19 @@
     <h1></h1>
     <p class="subtitle">Click a section to view its data</p>
 
-      <!-- Search bar -->
-  <div class="searchbar" role="search">
-    <div class="search-info">
-      You can search by <b>time</b>, <b>app</b>, or <b>word</b> — or combine them.
-      Partial matches are supported in every field.
+    <div class="searchbar" role="search">
+      <div class="search-info">
+        You can search by <b>time</b>, <b>app</b>, or <b>word</b> — or combine them.
+        Partial matches are supported in every field.
+      </div>
+      <input id="q-time"  placeholder="Time e.g. 2025-09-03_18-49-48" />
+      <input id="q-app"   placeholder="App e.g. Chrome" />
+      <input id="q-word"  placeholder="Word e.g. hello" />
+      <button id="btn-clear"  type="button">Clear</button>
     </div>
-    <input id="q-time"  placeholder="Time e.g. 2025-09-03_18-49-48" />
-    <input id="q-app"   placeholder="App e.g. Chrome" />
-    <input id="q-word"  placeholder="Word e.g. hello" />
-    <button id="btn-search" type="button">Search</button>
-    <button id="btn-clear"  type="button">Clear</button>
-  </div>
 
     <div id="machine-data"></div>
 
-    <!-- Bottom actions -->
     <div class="bottom-actions">
       <button id="delete-logs-button">Delete Logs</button>
       <button id="refresh-button" type="button">Refresh</button>
@@ -296,37 +287,25 @@
   </div>
 
   <script>
-    // ====== Title & machine name ======
     const params = new URLSearchParams(window.location.search);
     const machine_name = params.get("machine_name");
     document.querySelector("h1").textContent = `Machine: ${machine_name || '—'}`;
     window.onload = () => { document.title = `Machine: ${machine_name || 'Unknown'}`; };
 
-    // ====== State ======
-    const state = {
-      raw: null,
-      filters: { time: "", app: "", word: "" },
-    };
+    const state = { raw: null, filters: { time: "", app: "", word: "" } };
 
-    // ====== Helpers ======
     const formatInline = (val) => {
       if (val === null || val === undefined) return String(val);
-      if (typeof val === 'object') {
-        try { return JSON.stringify(val); } catch { return String(val); }
-      }
+      if (typeof val === 'object') { try { return JSON.stringify(val); } catch { return String(val); } }
       return String(val);
     };
-
     const toLower = (s) => (s == null ? "" : String(s).toLowerCase());
-
-      function timeMatches(timeSource, filter) {
+    function timeMatches(timeSource, filter) {
       if (!filter) return true;
       const src = String(timeSource).trim();
       const f   = String(filter).trim();
       return src.includes(f);
     }
-
-    // generic substring match (case-insensitive)
     function includesCI(hay, needle) {
       const h = toLower(hay);
       const n = toLower(needle).trim();
@@ -334,7 +313,6 @@
       return h.includes(n);
     }
 
-    // ====== Rendering: only sections with actual results ======
     function renderData(data, filters = state.filters) {
       const container = document.getElementById("machine-data");
       container.innerHTML = "";
@@ -389,7 +367,7 @@
 
         } else if (onlyData !== undefined) {
           const line = formatInline(onlyData);
-          const timeSrc = key; // no per-entry time
+          const timeSrc = key;
           if (timeMatches(timeSrc, filters.time) &&
               includesCI(line, filters.app) &&
               includesCI(line, filters.word)) {
@@ -422,7 +400,6 @@
       }
     }
 
-    // ====== Fetch ======
     async function getMachineData() {
       try {
         const response = await fetch(`/api/getData/${encodeURIComponent(machine_name)}`);
@@ -440,13 +417,10 @@
         container.appendChild(empty);
       }
     }
-
     getMachineData();
 
-    // ====== Toggle logic (unchanged) ======
     const toggleBtn = document.getElementById('toggle-button');
     let isOn = false;
-
     const renderToggle = () => {
       toggleBtn.classList.toggle('on', isOn);
       toggleBtn.setAttribute('aria-checked', String(isOn));
@@ -495,7 +469,6 @@
       }
     });
 
-    // ====== Bottom actions ======
     document.getElementById('refresh-button').addEventListener('click', getMachineData);
 
     const deleteLogsBtn = document.getElementById('delete-logs-button');
@@ -516,15 +489,13 @@
       }
     });
 
-    // ====== Client-side search ======
     const qTime  = document.getElementById('q-time');
     const qApp   = document.getElementById('q-app');
     const qWord  = document.getElementById('q-word');
-    const btnSearch = document.getElementById('btn-search');
     const btnClear  = document.getElementById('btn-clear');
 
     function applyFiltersFromInputs() {
-      state.filters.time = qTime.value.trim();  // supports "DD/MM/YY", "DD/MM/YY HH", "DD/MM/YY HH:MM"
+      state.filters.time = qTime.value.trim();
       state.filters.app  = qApp.value.trim();
       state.filters.word = qWord.value.trim();
       if (state.raw) renderData(state.raw, state.filters);
@@ -540,15 +511,12 @@
     qApp .addEventListener('input', debouncedApply);
     qWord.addEventListener('input', debouncedApply);
 
-    btnSearch.addEventListener('click', applyFiltersFromInputs);
     btnClear.addEventListener('click', () => {
       qTime.value = ""; qApp.value  = ""; qWord.value = "";
       applyFiltersFromInputs();
     });
     [qTime, qApp, qWord].forEach(inp => {
-      inp.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') applyFiltersFromInputs();
-      });
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFiltersFromInputs(); });
     });
   </script>
 </body>
